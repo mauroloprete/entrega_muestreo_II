@@ -1,0 +1,74 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{ulem}
+\usepackage{stackengine}
+\usepackage{appendix}
+\usepackage{caption}
+\usepackage[spanish]{babel}
+\usepackage[left=2.10cm,top=2.54cm,right=2.30cm,bottom=2.54cm]{geometry}
+\setlength{\parindent}{0pt}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[table]{xcolor}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{colortbl}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+\usepackage{multicol}
+\usepackage{amsmath}
+\spanishdecimal{.}
+\usepackage[backend=biber]{biblatex}
+\defbibfilter{other}{
+  not type=book
+}
+
+\addbibresource{biblio/bib.bib}
+\setlength{\parindent}{0pt}
+\usepackage[font=small,labelfont=bf]{caption}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\renewcommand{\listfigurename}{Lista de Figuras}
+\renewcommand{\contentsname}{Lista de Contenidos}
+\renewcommand{\figurename}{Figura}
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\begin{titlepage}
+  \centering
+  {\scshape\normalsize Universidad de la República \par}
+  {\scshape\normalsize Facultad de Ciencias Economicas y de Administración \par}
+  {\scshape\normalsize Licenciatura en Estadística \par}
+  \vspace{1cm}
+  {\scshape\Large Muestreo II \par}
+  \vspace{0.5cm}
+
+
+  \vfill
+  {\scshape\Large Hola \par}
+  \vfill
+  
+  \vspace{1cm}
+  {\Large Ignacio Acosta - Valentina Caldiroli - Mauro Loprete \par}
+  \vfill
+\end{titlepage}
+\setkeys{Gin}{width=0.8\textwidth}
+
+
+hola
+
+\end{document}
