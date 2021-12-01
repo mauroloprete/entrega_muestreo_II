@@ -1,0 +1,13 @@
+Doc.log
+document/figure/* 
+Doc.aux
+Doc.bbl
+Doc.bcf
+Doc.blg
+Doc.fbd_latexmk
+Doc.fls
+Doc.log
+Doc.out
+Doc.run.xml
+Doc.synctex.gz
+Doc.tex
