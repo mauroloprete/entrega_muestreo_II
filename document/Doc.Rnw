@@ -57,9 +57,9 @@
   {\scshape\Large Muestreo II \par}
   \vspace{0.5cm}
 
-
+  \includegraphics[scale = 0.40]{4711276.png}
   \vfill
-  {\scshape\Large Hola \par}
+  {\scshape\Large Proyecto final \par}
   \vfill
   
   \vspace{1cm}
@@ -68,7 +68,55 @@
 \end{titlepage}
 \setkeys{Gin}{width=0.8\textwidth}
 
+<<include = FALSE>>=
 
-hola
+if(!require(pacman)) {
+  install.packages("pacman")
+}
+
+pacman::p_load(
+  here,
+  magrittr,
+  tidytable,
+  knitr,
+  kableExtra,
+  stringr
+ )
+
+
+options(kableExtra.latex.load_packages = FALSE)
+
+ knitr::write_bib(
+   .packages(),
+   here(
+     "document",
+     "biblio",
+     "bib.bib"
+   )
+ )
+
+
+
+# Para poder recuperar el script de los chunk
+
+knitr::purl(
+  here::here(
+    "document",
+    "Doc.Rnw"
+  )
+)
+@
+
+\newpage
+\section*{Introducción}
+
+Informe 
+
+\newpage
+
+\section*{Referencias}
+\nocite{*}
+\printbibliography[title={Libros consultados},type=book]
+\printbibliography[title={Paquetes de R},filter=other]
 
 \end{document}
