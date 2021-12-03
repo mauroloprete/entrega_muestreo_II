@@ -83,7 +83,8 @@ pacman::p_load(
     forcats,
     tidytable,
     kableExtra,
-    magrittr
+    magrittr,
+    ggplot2
 )
 
 here(
@@ -379,6 +380,25 @@ cubriendo una vez que expanda la muestra}, que para este caso particular, \textb
 
 \section*{Parte 2}
 
+<<>>=
+ajuste_nr_estrato= muestra %>% 
+  group_by(estrato) %>% 
+  summarise(tr=mean(as.numeric(R)), 
+            tr_w = weighted.mean(as.numeric(R), w0))
+
+muestra  =left_join(muestra, 
+                    select(ajuste_nr_estrato, estrato, tr_w)) %>%
+  mutate(w_nr_post=w0/tr_w)
+
+# ggplot(muestra, aes(x = w0, y =  w_nr_post, color=estrato)) + geom_point()
+
+
+@
+
+Para el cálculo de los ponderadores por no respuesta lo primero fue realizar un ajuste de no respuesta mediante el uso de información del marco muestral, en este caso se hizo por los estratos definidos. 
+\\
+
+Luego se unió estos nuevos ponderadores por no respuesta a la muestra original. Observamos como los ponderadores por no respuesta aumentaron. 
 \newpage
 
 \section*{Parte 3}
