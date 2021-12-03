@@ -75,14 +75,29 @@ if(!require(pacman)) {
 }
 
 pacman::p_load(
-  here,
-  magrittr,
-  tidytable,
-  knitr,
-  kableExtra,
-  stringr
- )
+    here,
+    dplyr,
+    srvyr,
+    readxl,
+    dplyr,
+    forcats,
+    tidytable,
+    kableExtra,
+    magrittr
+)
 
+here(
+    "data",
+    "muestra grupo 4.xlsx"
+) %>%
+read_excel(
+    .
+) %>%
+assign(
+    "muestra",
+    .,
+    envir = .GlobalEnv
+)
 
 options(kableExtra.latex.load_packages = FALSE)
 
@@ -108,9 +123,269 @@ knitr::purl(
 @
 
 \newpage
-\section*{Introducción}
+\section*{Parte 1 : Estimaciones con ponderadores originales}
 
-Informe 
+Se calculan las estimaciones con los ponderadores originales,
+estimaciones de la tasa de desempleo, la proporción de personas pobres e 
+ingreso promedio. 
+\\
+
+Dada la existencia de no respuesta en la muestra y el tratamiento
+realizado, estamos frente a \textbf{una postura deterministica de la no respuesta}. 
+\\
+
+A continuación se muestra el código utilizado para realizar las diferentes estimaciones :
+
+<<>>=
+muestra %>%
+    as_survey_design(
+        ids = 1,
+        weight = w0,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ) * 100,
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        )
+    ) %>%
+    assign(
+      "est_originales",
+      .,
+      envir = .GlobalEnv
+    )
+@
+
+\newpage
+
+Los resultados se encuentran en el siguiente cuadro: 
+
+<<echo = FALSE>>=
+ est_originales %>%
+    pivot_longer.(
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff"
+      )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Estimaciones poblacionales usando ponderadores originales"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+@
+
+
+En base al cuadro, podemos ver que los errores estandar son relativamente chicos, en cambio podemos 
+notar una gran variabilidad en las estimaciones para la tasa de desempleo entre muestra y muestra,
+esto es, si consideramos el coeficiente de variación. 
+\\
+
+A lo que refiere al efecto diseño, que recordemos, refiere a la reducción (o aumento de varianza)
+respecto a un diseño simple, se puede ver que son valores coherentes, ya que recordemos que
+el diseño de esta encuesta cuenta con varias etapas de selección.
+\\
+
+Este estadístico tiene el mismo problema que el coeficiente de variación a lo que refiere
+a las estimaciones de la tasa de desoupación, llamando nuestra atención.
+
+
+% # TODO Mauro ver clase de JP con el nuevo diseño y poner algo de eso!
+
+\subsection*{Tasa de no respuesta}
+
+Desde un enfoque deterministico de la no respuesta, podemos dividir a la muestra en aquellos
+individuos que respondierón y en aquellos que no lo hicierón. 
+
+Es decir, podemos particionar la muestra en aquellos respondentes $r_{u}$ y no respondentes $s-r_{u}$.
+\\
+
+Una medida de interés, es ver la proporción de respuestas en nuestra muestra, definida como :
+
+\begin{equation*}
+    p_{r_{u}} = \frac{n_{r_{u}}}{n_{s}}
+\end{equation*}
+
+Para nuestra muestra particular, este dato viene dado por : 
+
+<<>>=
+muestra %>%
+    summarize.(
+        tr = mean(R)
+    ) %>%
+    mutate.(
+        tnr = 1 - tr
+    ) %>%
+    assign(
+        "tasaRespuesta",
+        .,
+        envir = .GlobalEnv
+    )
+@
+
+<<echo = FALSE>>=
+tasaRespuesta %>%
+    set_names(
+        c(
+            "Tasa de Respuesta",
+            "Tasa de No Respuesta"
+        )
+    ) %>%
+    mutate.(
+        across.(
+            .fns = ~ round(.x,2)
+        )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Tasa de Respuesta"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+@
+En base a este indicador, podemos ver que poco más de la mitad de las personas seleccionadas en la muestra
+se pudo recabar información.
+
+\newpage
+
+Por último, podemos ver la tasa de no respuesta poblacional, definida como : 
+
+\begin{equation*}
+    \hat{p}_{r_{u}} = \frac{\sum_{r_{u}}{w_{0}}}{\sum_{r_{s}}{w_{0}}} = \frac{\hat{N}_{r_{u}}}{\hat{N}_{s}}
+\end{equation*}
+
+<<>>=
+muestra %>%
+    summarize.(
+        tr = sum(R*w0) / sum(w0)
+    ) %>%
+    assign(
+        "tasaRespuestapob",
+        .,
+        envir = .GlobalEnv
+    )
+@
+
+<<echo = FALSE>>=
+tasaRespuestapob %>%
+    mutate.(
+        tnr = 1 - tr
+    ) %>%
+    mutate.(
+        across.(
+            .fns = ~ round(.x,2)
+        )
+    ) %>%
+    set_names(
+        c(
+            "Tasa de respuesta poblacional",
+            "Tasa de no respuesta poblacional"
+        )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Tasa de Respuesta poblacional"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+@
+
+De manera análoga, la tasa de respuesta es identica a la anterior, si consideramos dos cifras significativas.
+Esta estimación puede tener la siguiente interpretación : \textit{el porcentaje de la población que estoy 
+cubriendo una vez que expanda la muestra}, que para este caso particular, \textbf{es sumamente bajo}.
+
+\newpage
+
+\section*{Parte 2}
+
+\newpage
+
+\section*{Parte 3}
+
+\newpage
+
+\section*{Parte 4}
 
 \newpage
 
