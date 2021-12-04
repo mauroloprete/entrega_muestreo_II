@@ -381,6 +381,8 @@ cubriendo una vez que expanda la muestra}, que para este caso particular, \textb
 
 \section*{Parte 2}
 
+\subsection{Parte a}
+
 <<>>=
 ajuste_nr_estrato= muestra %>% 
   group_by(estrato) %>% 
@@ -510,16 +512,270 @@ est_ponderados_nr %>%
     )
 @
 
+\subsection{Parte b}
 
 <<>>=
 modelo_rf = rand_forest( trees = 200) %>%
   set_engine(’ranger’) %>%
   set_mode(’classification’) %>%
-  fit(R ~ estrato + sexo + edad + dpto + id_hogar, data = s)
+  fit(R ~ estrato + sexo + edad + dpto + id_hogar, data = muestra)
+
+# modelo_rf <- boost_tree(trees = 1000) %>%
+#  set_engine('xgboost') %>%
+# set_mode('classification') %>% 
+#  fit(medv~., data=boston_train)
 
 modelo_rf
 @
 
+
+<<>>=
+pred_rf <- tibble(predict(rf_model, muestra, type = ’prob’),
+                predict(rf_model, muestra))
+
+matriz_confusion <- (data = bind_cols(select(muestra, R),
+                          select(pred_rf,.pred_class)),
+         truth = R, 
+         estimate = .pred_class)
+
+pred_rf <- pred_rf %>% rename(prop_rf =.pred_1)
+muestra <- muestra %>% bind_cols(select(pred_rf, prop_rf))
+
+muestra <- muestra %>% mutate(w_nr_rf = ifelse(R==1, base_weights/prop_rf,0))
+@
+
+<<>>=
+muestra %>%
+    as_survey_design(
+        ids = 1,
+        weight = w_nr_rf,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ) * 100,
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr_rf",
+      .,
+      envir = .GlobalEnv
+    )
+@
+
+<<>>=
+est_ponderados_nr_rf %>%
+    pivot_longer.(
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff"
+      )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando random forest"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+@
+
+
+\subsectio{Parte c}
+
+<<>>=
+clases_prop = out = pclass(formula = R~estrato+sexo+edad+id_hogar+dpto,
+                           data = muestra, 
+                           type = "unwtd", 
+                           link="logit", numcl=5) %>%
+  as_tibble()
+
+muestra <- bind_cols(muestra, clases_prop)
+muestra <- muestra %>% 
+  group_by(p.class) %>%
+  mutate(ajuste_nr_clases=1/median(propensities)) %>%
+  ungroup()
+@
+
+<<>>=
+muestra %>%
+    as_survey_design(
+        ids = 1,
+        weight = ajuste_nr_clases,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ) * 100,
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr_clases",
+      .,
+      envir = .GlobalEnv
+    )
+@
+
+<<>>=
+est_ponderados_nr_clases %>%
+    pivot_longer.(
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff"
+      )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando las propensiones del punto anterior"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+@
 
 \newpage
 
