@@ -84,7 +84,8 @@ pacman::p_load(
     tidytable,
     kableExtra,
     magrittr,
-    ggplot2
+    ggplot2,
+    tidymodels
 )
 
 here(
@@ -399,6 +400,127 @@ Para el cálculo de los ponderadores por no respuesta lo primero fue realizar un
 \\
 
 Luego se unió estos nuevos ponderadores por no respuesta a la muestra original. Observamos como los ponderadores por no respuesta aumentaron. 
+
+
+<<>>=
+muestra %>%
+    as_survey_design(
+        ids = 1,
+        weight = w_nr_post,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ) * 100,
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr",
+      .,
+      envir = .GlobalEnv
+    )
+@
+
+<<>>=
+est_ponderados_nr %>%
+    pivot_longer.(
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff"
+      )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+@
+
+
+<<>>=
+modelo_rf = rand_forest( trees = 200) %>%
+  set_engine(’ranger’) %>%
+  set_mode(’classification’) %>%
+  fit(R ~ estrato + sexo + edad + dpto + id_hogar, data = s)
+
+modelo_rf
+@
+
+
 \newpage
 
 \section*{Parte 3}
