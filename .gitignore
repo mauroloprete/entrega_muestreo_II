@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 Doc.log
 document/figure/* 
 Doc.aux
@@ -13,9 +12,4 @@ Doc.run.xml
 Doc.synctex.gz
 Doc.tex
 document/Doc.fdb_latexmk
-=======
 .Rproj.user
-.Rhistory
-.RData
-.Ruserdata
->>>>>>> 78b3448812b3ece86267127d2a0254b6d1ec1699

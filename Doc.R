@@ -1,74 +1,4 @@
-\documentclass[11pt,a4paper]{article}
-\usepackage[utf8]{inputenc}
-\usepackage{amsfonts}
-\usepackage{amssymb}
-\usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage{ulem}
-\usepackage{stackengine}
-\usepackage{appendix}
-\usepackage{caption}
-\usepackage[spanish]{babel}
-\usepackage[left=2.10cm,top=2.54cm,right=2.30cm,bottom=2.54cm]{geometry}
-\setlength{\parindent}{0pt}
-\usepackage[font=small,labelfont=bf]{caption}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage[table]{xcolor}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
-\usepackage{multicol}
-\usepackage{amsmath}
-\spanishdecimal{.}
-\usepackage[backend=biber]{biblatex}
-\defbibfilter{other}{
-  not type=book
-}
-
-\addbibresource{biblio/bib.bib}
-\setlength{\parindent}{0pt}
-\usepackage[font=small,labelfont=bf]{caption}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\renewcommand{\listfigurename}{Lista de Figuras}
-\renewcommand{\contentsname}{Lista de Contenidos}
-\renewcommand{\figurename}{Figura}
-\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}\definecolor{shadecolor}{rgb}{.97, .97, .97}
-\definecolor{messagecolor}{rgb}{0, 0, 0}
-\definecolor{warningcolor}{rgb}{1, 0, 1}
-\definecolor{errorcolor}{rgb}{1, 0, 0}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{document}
-\begin{titlepage}
-  \centering
-  {\scshape\normalsize Universidad de la República \par}
-  {\scshape\normalsize Facultad de Ciencias Economicas y de Administración \par}
-  {\scshape\normalsize Licenciatura en Estadística \par}
-  \vspace{1cm}
-  {\scshape\Large Muestreo II \par}
-  \vspace{0.5cm}
-
-  \includegraphics[scale = 0.40]{4711276.png}
-  \vfill
-  {\scshape\Large Proyecto final \par}
-  \vfill
-  
-  \vspace{1cm}
-  {\Large Ignacio Acosta - Valentina Caldiroli - Mauro Loprete \par}
-  \vfill
-\end{titlepage}
-\setkeys{Gin}{width=0.8\textwidth}
-
-<<include = FALSE>>=
+## ----include = FALSE-------------------------------------------------------------------------------------------------------
 
 if(!require(pacman)) {
   install.packages("pacman")
@@ -131,23 +61,9 @@ knitr::purl(
     "Doc.Rnw"
   )
 )
-@
 
-\newpage
-\section*{Parte 1 : Estimaciones con ponderadores originales}
 
-Se calculan las estimaciones con los ponderadores originales,
-estimaciones de la tasa de desempleo, la proporción de personas pobres e 
-ingreso promedio. 
-\\
-
-Dada la existencia de no respuesta en la muestra y el tratamiento
-realizado, estamos frente a \textbf{una postura deterministica de la no respuesta}. 
-\\
-
-A continuación se muestra el código utilizado para realizar las diferentes estimaciones :
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     as_survey_design(
         ids = id_hogar,
@@ -185,13 +101,9 @@ muestra %>%
       .,
       envir = .GlobalEnv
     )
-@
 
-\newpage
 
-Los resultados se encuentran en el siguiente cuadro: 
-
-<<echo = FALSE>>=
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
  est_originales %>%
     pivot_longer.(
         names_to = "v",
@@ -257,33 +169,9 @@ Los resultados se encuentran en el siguiente cuadro:
             "hold_position"
         )
     )
-@
 
 
-En base al cuadro, podemos ver que los errores estandar son relativamente chicos, de manera
-análoga podemos tomar el incremento de varianza respecto a un diseño simple, en base 
-al $deff$, estos son altos debido al diseño en varias etapas de esta encuesta.
-
-
-% # TODO Mauro ver clase de JP con el nuevo diseño y poner algo de eso!
-
-\subsection*{Tasa de no respuesta}
-
-Desde un enfoque deterministico de la no respuesta, podemos dividir a la muestra en aquellos
-individuos que respondierón y en aquellos que no lo hicierón. 
-
-Es decir, podemos particionar la muestra en aquellos respondentes $r_{u}$ y no respondentes $s-r_{u}$.
-\\
-
-Una medida de interés, es ver la proporción de respuestas en nuestra muestra, definida como :
-
-\begin{equation*}
-    p_{r_{u}} = \frac{n_{r_{u}}}{n_{s}}
-\end{equation*}
-
-Para nuestra muestra particular, este dato viene dado por : 
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     summarize.(
         tr = mean(R)
@@ -296,9 +184,9 @@ muestra %>%
         .,
         envir = .GlobalEnv
     )
-@
 
-<<echo = FALSE>>=
+
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 tasaRespuesta %>%
     set_names(
         c(
@@ -321,19 +209,9 @@ tasaRespuesta %>%
             "hold_position"
         )
     )
-@
-En base a este indicador, podemos ver que poco más de la mitad de las personas seleccionadas en la muestra
-se pudo recabar información.
 
-\newpage
 
-Por último, podemos ver la tasa de no respuesta poblacional, definida como : 
-
-\begin{equation*}
-    \hat{p}_{r_{u}} = \frac{\sum_{r_{u}}{w_{0}}}{\sum_{r_{s}}{w_{0}}} = \frac{\hat{N}_{r_{u}}}{\hat{N}_{s}}
-\end{equation*}
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     summarize.(
         tr = sum(R*w0) / sum(w0)
@@ -343,9 +221,9 @@ muestra %>%
         .,
         envir = .GlobalEnv
     )
-@
 
-<<echo = FALSE>>=
+
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 tasaRespuestapob %>%
     mutate.(
         tnr = 1 - tr
@@ -371,34 +249,9 @@ tasaRespuestapob %>%
             "hold_position"
         )
     )
-@
 
-De manera análoga, la tasa de respuesta es identica a la anterior, si consideramos dos cifras significativas.
-Esta estimación puede tener la siguiente interpretación : \textit{el porcentaje de la población que estoy 
-cubriendo una vez que expanda la muestra}, que para este caso particular, \textbf{es sumamente bajo}.
 
-\newpage
-
-\section*{Parte 2}
-
-\subsection*{Parte a}
-
-A continuación se calcuara la tasa de respuesta asumiento un patrón del tipo MAR, es decir, la no respuesta depende de covariables no utilizadas para la estimación.
-\\
-
-Este tipo de estrategia se basa en crear grupos de individuos con comportamiento similar en la no respuesta, a todos los ponderadores considerados dentro del mismo
-grupo se le aplicara el mismo ajuste $\Phi_{i}$ a los ponderadores del i-ésimo grupo.
-\\
-
-Los diferentes grupos de no respuesta se construiran en base al departamento y estrato al que pertenecen, para aprovechar al máximo las variables consideradas en el marco.
-\\
-
-A exepción de Montevideo, Canelones y San José, a cada departamento se le imputara la tasa de respuesta de su mismo departamento. 
-Esto puede llegar a hacer diferencias ya que si resumimos esta variable considerando la interacción de estos dos grupos,
-se pueden encontrar diferentes comportamientos en la tasa de respuesta :
-\\
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     summarize.(
         tr_w_estrato_dpto = weighted.mean(
@@ -428,9 +281,9 @@ muestra %<>%
     )
 
 
-@
 
-<<echo = FALSE>>=
+
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 tr_estrato_dpto %>%
     mutate.(
         dpto_label = case_when.(
@@ -502,22 +355,9 @@ tr_estrato_dpto %>%
     scale_colour_viridis_d(
         option = "inferno"
     )
-@
 
 
-En base a la gráfica podemos ver diferentes comportamientos en los diferentes departamentos, aunque la mayor diferencia se nota
-en San José, con una tasa de respuesta mayor en el Litoral Sur respecto al de la zona metropolitana.
-\\
-
-A lo que refiere a Montevideo, se puede ver una relación creciente (no monotona gracias al estrato medio alto) al estrato referido al 
-contexto economico \footnote{Asumiendo que los estratos son los mismos que el de la ECH} para la tasa de respuesta, mientras que para
-Canelones no se notan grandes diferencias.
-\newpage
-
-Una vez hecho esto, continuaremos con el ajuste por no respuesta para los ponderadores originales: 
-\\
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     as_survey_design(
         ids = id_hogar,
@@ -559,11 +399,9 @@ muestra %>%
       .,
       envir = .GlobalEnv
     )
-@
 
-Resultando así, las estimaciones del punto anterior y considerando además el \textit{Efecto diseño de Kish}.
 
-<<echo = FALSE>>=
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 est_ponderados_nr %>%
     pivot_longer.(
         - deffK,
@@ -632,38 +470,9 @@ est_ponderados_nr %>%
             "hold_position"
         )
     )
-@
 
-Una vez realizado el ajuste, las estimaciones de las variables, además de las referidas a
-las del error estandar, el coeficiente de variación y efecto diseño, difierón poco respecto a un enfoque deterministico.
-\\
 
-Algo que puede llamar la atención es como bajó el ingreso promedio, así como todas las estimaciones referidas
-a su estadístico.
-
-A lo que refiere al efecto diseño de Kish, podemos ver que se encuentra en un nivel de $1.03$ un aumento 
-poco considerable en la variabilidad de los ponderadores, respecto a un diseño autoponderado.
-
-\subsection*{Parte b}
-
-Mediante el uso de modelos de Machine Learning de aprendizaje supervizado, estimaremos el \textit{propensity score} 
-conocidos como \textbf{Gradient boosting}.
-\\
-
-Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados,
-la diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
-paso se minimiza una función de pérdida (predicciónes contra valores observados). 
-\\
-
-Este tipo de modelos supera a los del tipo de RF, ya que cada nuevo árbol de clasficación se genera tomando en cuenta 
-los errores del paso anterior y no simplemente por azar.
-\\
-
-Dado que este tipo de modelos tiende a tener problemas de sobreajuste, debemos de elegir una cantidad de árboles moderada,
-en nuestro caso 200.
-\\
-
-<<echo = FALSE>>=
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 muestra %>%
     summarize.(
         tr_w = mean(R),
@@ -700,15 +509,9 @@ muestra %>%
         legend.position = "bottom"
     ) + 
     scale_colour_viridis_d()
-@
-
-Salvo exepciones, puede verse que en edades jovenes y adultas la tasa de respuesta se encuentra sin diferencias
-por sexo, aunque en edades ancianas, la tasa de respuesta en mujeres tiende a aumentar respecto a la de los hombres,
-es por esto que sería bueno incluir estas dos variables en el modelo de clasificación.
-\newpage
 
 
-<<warning = FALSE>>=
+## ----warning = FALSE-------------------------------------------------------------------------------------------------------
 boost_tree(
     trees = 300
 ) %>%
@@ -726,11 +529,9 @@ assign(
     .,
     envir = .GlobalEnv
 )
-@
 
-\newpage
 
-<<echo = FALSE>>=
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 tibble(
     predict(
         modelo_boost,
@@ -778,16 +579,9 @@ kable_styling(
             "hold_position"
         )
     )
-@
-
-A lo que refiere a la sensibilidad del modelo podemos ver que es de $70 \%$, mientras que la especificidad es de
-un casi $62 \%$ y un error total de $31 \%$ , calculamos las propensiones individuales y ajustamos los ponderadores
-por no respuesta:
-\\
 
 
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 
 muestra %<>%
     bind_cols.(
@@ -796,9 +590,9 @@ muestra %<>%
     mutate.(
         w_nr_boost = (w0*R)/(pred_boost)
     )
-@
 
-<<>>=
+
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     as_survey_design(
         ids = id_hogar,
@@ -840,9 +634,9 @@ muestra %>%
       .,
       envir = .GlobalEnv
     )
-@
 
-<<echo = FALSE>>=
+
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 est_ponderados_nr_boost %>%
     pivot_longer.(
         - deffK,
@@ -911,20 +705,9 @@ est_ponderados_nr_boost %>%
             "hold_position"
         )
     )
-@
 
 
-Una vez realizadas las estimaciones, se puede ver que las estimaciones difieren poco,
-además de un leve aumento en los errores estandar y coeficientes de variación, sin embargo
-se puede notar un aumento en el efecto diseño, así como también en el efecto diseño de Kish.
-\\
-
-Este último, si bien es mas alto que el anterior basandonos en la regla empírica, al momento,
-no debemos de preocuparnos. Por último, veremos un gráfico de dispersión de los ponderadores originales,
-respecto a los recién ajustados.
-\\
-
-<<echo = FALSE>>=
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 muestra %>%
     filter.(
         R > 0
@@ -943,25 +726,9 @@ muestra %>%
         y = "Ponderadores NR con boosting"
     ) + 
     theme_bw()
-@
 
-En base a este gráfico puede verse como se aumentarón los ponderadores algunos de ellos de forma considerable,si bien esto puede sonar alarmante los 
-encuestados respondentes tienen que brindar información sobre los que no respondierón, al tener tasas de respuesta bajas, la variación de los ponderadores,
-tiene que reflejar esa situación. 
-\\
 
-Algo a considerar, es que la estimación de la población obtenida con este nuevo sistema de ponderadores ($3.415.329$) siendo la original de ($3.518.412$) 
-son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta estimación crecia a casí el doble $6.582.193$.
-
-\subsection*{Parte c}
-
-Con el mismo modelo de la parte anterior vamos a ajustar la no respuesta médiante propensiones estratificadas, para ello vamos a 
-dividir las propensiones en sus quntiles y luego para cada grupo le asignaremos la propensión mediana. 
-\\
-
-Primero realizaremos un histograma de estas propensiones : 
-
-<<echo = FALSE>>=
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 muestra %>%
     ggplot(
         aes(
@@ -974,17 +741,9 @@ muestra %>%
         alpha = 0.6
     ) + 
     theme_bw()
-@
 
-Podemos ver una distribución simetrica, centrada en valores poco mas grandes que 
-$1/2$ aproximandose al valor de la tasa de respuesta. 
-\\
 
-A continuación calcularemos las propensiones estratificadas utilizndo los quintiles de la distribución
-para agrupar y el estadístico utilizado para resumir el score será la mediana: 
-\newpage
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 
 muestra %<>%
     mutate.(
@@ -1005,9 +764,9 @@ muestra %<>%
         w_nr_boost_clases = R * w0 * ajuste_boost_clases
     )
 
-@
 
-<<>>=
+
+## --------------------------------------------------------------------------------------------------------------------------
 muestra %>%
     as_survey_design(
         ids = id_hogar,
@@ -1049,9 +808,9 @@ muestra %>%
       .,
       envir = .GlobalEnv
     )
-@
 
-<<echo = FALSE>>=
+
+## ----echo = FALSE----------------------------------------------------------------------------------------------------------
 est_ponderados_nr_boost %>%
     pivot_longer.(
         - deffK,
@@ -1120,16 +879,9 @@ est_ponderados_nr_boost %>%
             "hold_position"
         )
     )
-@
 
-\newpage
 
-\section*{Parte 3}
-
-Una vez realizado el ajuste por no respuesta, vamos a calibrar estos ponderadores en base 
-conteos poblacionales por departamento, sexo y edad. Primero construiremos los totales marginales: 
-
-<<>>=
+## --------------------------------------------------------------------------------------------------------------------------
 read_excel(
     here(
         "data",
@@ -1223,26 +975,12 @@ conteos <- c(
     total_sexo[-1]
 )
 
-@
 
-Ahora construiremos los nuevos ponderadores calibrados usando el método de Raking o post-estratificación incompleta, 
-recortamos los mismos y aumentamos el tamaño de iteraciones por defecto.
-\\
-
-Con los limites fijados los ponderadores pueden variar hasta un $30\%$ de su valor obtenido con las propensiones estratificadas del boosting,es decir, al argumento bounds le fijamos $-1.3$ y $1.3$
-
-<<>>=
 survey::calibrate(
     design = diseño_nr_boost_clases,
     formula = ~ as.factor(dpto) + edad_tramo + as.factor(sexo),
     population = conteos,
-    calfun = "raking",
-    bounds = c(
-      -1.3,
-      1.3
-    ),
-    maxit = 100,
-    bounds.const = FALSE
+    calfun = "raking"
 ) %>%
 assign(
     "w_nr_calibrados",
@@ -1256,47 +994,20 @@ muestra %<>%
             w_nr_calibrados
         )
     )
-
-@
-
-Si realizamos un diagrama de dispersión de los ponderadores calibrados y los obtenidos en el punto anterior,
-podemos ver su cambio. Si al utilizar trimming en el raking, los totales poblacionales de variables auxiliares no se cumplen de manera exacta para cada grupo, aunque sigue estimando sin error el total poblacional fijado con los ponderadores originales.
-
-<<echo = FALSE,message=FALSE,warning=FALSE>>=
 muestra %>%
-  filter.(
-    R > 0
-  ) %>%
 ggplot(
     aes(
         x = w_nr_boost_clases,
         y = w_nr_boost_clases_calibrados
     )
 ) + 
-geom_point() + 
-geom_smooth() +
-theme(
-  aspect.ratio = 1
-) + 
-theme_bw()
-
-@
+geom_point() -> p1
+ggMarginal(
+    p1,
+    type = "density",
+    margins = "x"
+)
 
 
-Antes de culminar esta etapa, podemos ver que el efecto diseño de Kish aumento levemente a \Sexpr{muestra %>% filter.(R>0) %>% summarize.(deffK(w_nr_boost_clases_calibrados)) %>% pull.() %>% round(3)}. 
+summary(weights(r1))
 
-\newpage
-
-\section*{Parte 4}
-
-una vez realizado el ajuste por no respuesta y calibrando con las variables poblacionales podemos realizar las estimaciones referida
-
-
-\newpage
-
-\section*{Referencias}
-\nocite{*}
-\printbibliography[title={Libros consultados},type=book]
-\printbibliography[title={Paquetes de R},filter=other]
-
-\end{document}

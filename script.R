@@ -82,5 +82,55 @@ muestra %>%
     )
 
 
+muestra %>% 
+  summarize.(
+    n(),
+    .by = c("w0","estrato")
+  )
 
 
+
+
+muestra %>%
+    summarize.(
+        tr_w = mean(R),
+        .by = c(
+            "edad",
+            "sexo"
+        )
+    ) %>%
+    ggplot(
+        aes(
+            x = edad,
+            y = tr_w 
+        )
+    ) + 
+    geom_point() + 
+    facet_grid(
+        vars(sexo)
+    )
+
+
+muestra %>% 
+  summarize.(
+    sum(w_nr_boost_clases_calibrados),
+    .by = "sexo"
+  )
+
+muestra %>% 
+  summarize.(
+    sum(w_nr_boost_clases_calibrados),
+    .by = "dpto"
+  ) %>% 
+  arrange.(
+    dpto
+  )
+
+muestra %>% 
+  summarize.(
+    sum(w_nr_boost_clases_calibrados),
+    .by = "edad_tramo"
+  ) %>% 
+  arrange.(
+    edad_tramo
+  )
