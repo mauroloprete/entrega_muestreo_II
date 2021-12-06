@@ -27,6 +27,13 @@ here(
 read_excel(
     .
 ) %>%
+mutate.(
+    edad_tramo = cut(
+        edad,
+        breaks = c(0,14,20,25,30,40,50,60,Inf),
+        right=FALSE
+    )
+) %>%
 assign(
     "muestra",
     .,
@@ -767,7 +774,7 @@ muestra %>%
         strata = estrato
     ) %T>%
     assign(
-        "diseño",
+        "diseño_nr_boost_clases",
         .,
         envir = .GlobalEnv
     ) %>%
@@ -872,4 +879,134 @@ est_ponderados_nr_boost %>%
             "hold_position"
         )
     )
+
+
+## -----------------------------------------------------------------------------
+read_excel(
+    here(
+        "data",
+        "dpto.xlsx"
+    )
+) %>%
+rename.(
+    personas_dpto = personas 
+) %>%
+full_join.(
+    muestra,
+    by = "dpto"
+) %T>%
+assign(
+    "muestra",
+    .,
+    envir = .GlobalEnv
+) %>%
+pull.(
+    "personas_dpto"
+) %>%
+unique() %>%
+assign(
+    "total_dpto",
+    .,
+    envir = .GlobalEnv
+)
+
+edad_sexo <- read_excel(
+    here(
+        "data",
+        "sexo_edad.xlsx"
+    )
+)
+
+edad_sexo  %>%
+    mutate.(
+        total = hombres + mujeres,
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        edad_tramo = cut(
+            edad,
+            breaks = c(0,14,20,25,30,40,50,60,Inf),
+            right=FALSE
+        )
+    ) %>%
+    summarize.(
+        total = sum(total),
+        .by = "edad_tramo"
+    ) %>% 
+    rename.(
+        total_edad = total
+    ) %>%
+    full_join.(
+        muestra,
+        by = "edad_tramo"
+    )%T>%
+    assign(
+        "muestra",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    pull.(
+        "total_edad"
+    ) %>%
+    unique() %>%
+    assign(
+        "total_edad",
+        .,
+        envir = .GlobalEnv
+    )
+
+edad_sexo  %>%
+    summarize.(
+        hombres = sum(hombres),
+        mujeres = sum(mujeres)
+    ) %>%
+    pivot_longer.(
+        names_to = "sexo",
+        values_to = "valor"
+    ) %>%
+    rename.(
+        total_sexo = valor
+    ) %>%
+    mutate.(
+        sexo = ifelse.(
+            sexo == "hombres",
+            1,
+            2
+        )
+    ) %>%
+    full_join.(
+        muestra,
+        by = "sexo"
+    ) %T>%
+    assign(
+        "muestra",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    pull.(
+        "total_sexo"
+    ) %>%
+    unique() %>%
+    assign(
+        "total_sexo",
+         .,
+        envir = .GlobalEnv
+    )
+
+
+
+conteos <- c(
+    sum(muestra$w0),
+    total_dpto[-1],
+    total_edad[-1],
+    total_sexo[-1]
+)
+
+
+survey::calibrate(
+    design = diseño_nr_boost_clases,
+    formula = ~ dpto + edad_tramo + sexo,
+    population = conteos,
+    calfun="raking"
+) -> r1
 
