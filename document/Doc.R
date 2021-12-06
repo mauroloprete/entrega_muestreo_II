@@ -472,7 +472,7 @@ est_ponderados_nr %>%
     )
 
 
-## ----echo = FALSE-------------------------------------------------------------
+## ----echo = FALSE, fig.caption="Gráfico de dispersión tasa de respuesta por edad y sexo"----
 muestra %>%
     summarize.(
         tr_w = mean(R),
@@ -891,15 +891,6 @@ read_excel(
 rename.(
     personas_dpto = personas 
 ) %>%
-full_join.(
-    muestra,
-    by = "dpto"
-) %T>%
-assign(
-    "muestra",
-    .,
-    envir = .GlobalEnv
-) %>%
 pull.(
     "personas_dpto"
 ) %>%
@@ -936,15 +927,6 @@ edad_sexo  %>%
     rename.(
         total_edad = total
     ) %>%
-    full_join.(
-        muestra,
-        by = "edad_tramo"
-    )%T>%
-    assign(
-        "muestra",
-        .,
-        envir = .GlobalEnv
-    ) %>%
     pull.(
         "total_edad"
     ) %>%
@@ -974,15 +956,6 @@ edad_sexo  %>%
             2
         )
     ) %>%
-    full_join.(
-        muestra,
-        by = "sexo"
-    ) %T>%
-    assign(
-        "muestra",
-        .,
-        envir = .GlobalEnv
-    ) %>%
     pull.(
         "total_sexo"
     ) %>%
@@ -1005,8 +978,11 @@ conteos <- c(
 
 survey::calibrate(
     design = diseño_nr_boost_clases,
-    formula = ~ dpto + edad_tramo + sexo,
+    formula = ~ as.factor(dpto) + edad_tramo + as.factor(sexo),
     population = conteos,
-    calfun="raking"
+    calfun="raking",
+    bounds
 ) -> r1
+
+summary(weights(r1))
 
