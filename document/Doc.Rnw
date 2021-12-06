@@ -97,6 +97,13 @@ here(
 read_excel(
     .
 ) %>%
+mutate.(
+    edad_tramo = cut(
+        edad,
+        breaks = c(0,14,20,25,30,40,50,60,Inf),
+        right=FALSE
+    )
+) %>%
 assign(
     "muestra",
     .,
@@ -505,7 +512,7 @@ en San José, con una tasa de respuesta mayor en el Litoral Sur respecto al de l
 A lo que refiere a Montevideo, se puede ver una relación creciente (no monotona gracias al estrato medio alto) al estrato referido al 
 contexto economico \footnote{Asumiendo que los estratos son los mismos que el de la ECH} para la tasa de respuesta, mientras que para
 Canelones no se notan grandes diferencias.
-\\
+\newpage
 
 Una vez hecho esto, continuaremos con el ajuste por no respuesta para los ponderadores originales: 
 \\
@@ -637,7 +644,7 @@ a su estadístico.
 A lo que refiere al efecto diseño de Kish, podemos ver que se encuentra en un nivel de $1.03$ un aumento 
 poco considerable en la variabilidad de los ponderadores, respecto a un diseño autoponderado.
 
-\subsection{Parte b}
+\subsection*{Parte b}
 
 Mediante el uso de modelos de Machine Learning de aprendizaje supervizado, estimaremos el \textit{propensity score} 
 conocidos como \textbf{Gradient boosting}.
@@ -698,10 +705,10 @@ muestra %>%
 Salvo exepciones, puede verse que en edades jovenes y adultas la tasa de respuesta se encuentra sin diferencias
 por sexo, aunque en edades ancianas, la tasa de respuesta en mujeres tiende a aumentar respecto a la de los hombres,
 es por esto que sería bueno incluir estas dos variables en el modelo de clasificación.
-\\
+\newpage
 
 
-<<>>=
+<<warning = FALSE>>=
 boost_tree(
     trees = 300
 ) %>%
@@ -712,14 +719,16 @@ set_mode(
     "classification"
 ) %>%
 fit(
-    as.factor(R) ~ estrato + sexo + edad + dpto, data = training(muestra_split)
-) %T>%
+    as.factor(R) ~ estrato + sexo + edad + dpto, data = muestra
+) %>%
 assign(
     "modelo_boost",
     .,
     envir = .GlobalEnv
 )
 @
+
+\newpage
 
 <<echo = FALSE>>=
 tibble(
@@ -757,7 +766,8 @@ conf_mat(
 ) %$%
 table %>%
 kbl(
-    booktabs = TRUE
+    booktabs = TRUE,
+    caption = "Matriz de confusión"
 ) %>%
 add_header_above(
     nombres
@@ -792,11 +802,11 @@ muestra %<>%
 muestra %>%
     as_survey_design(
         ids = id_hogar,
-        weight = w_nr_rf,
+        weight = w_nr_boost,
         strata = estrato
     ) %T>%
     assign(
-        "diseño",
+        "diseño_boost",
         .,
         envir = .GlobalEnv
     ) %>%
@@ -819,18 +829,23 @@ muestra %>%
             ingreso,
             deff = TRUE,
             vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost,
+          type = "kish"
         )
     ) %>%
     assign(
-      "est_ponderados_nr_rf_2",
+      "est_ponderados_nr_boost",
       .,
       envir = .GlobalEnv
     )
 @
 
-<<>>=
-est_ponderados_nr_rf %>%
+<<echo = FALSE>>=
+est_ponderados_nr_boost %>%
     pivot_longer.(
+        - deffK,
         names_to = "v",
         values_to = "value"
     ) %>%
@@ -873,7 +888,8 @@ est_ponderados_nr_rf %>%
       estimacion,
       se,
       cv,
-      deff
+      deff,
+      deffK
     ) %>%
     set_names(
       c(
@@ -881,12 +897,13 @@ est_ponderados_nr_rf %>%
         "Estimación puntual",
         "Error estandar",
         "CV",
-        "deff"
+        "deff",
+        "Efecto diseño de Kish"
       )
     ) %>%
     kbl(
         booktabs = T,
-        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando random forest"
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando Boosting"
     ) %>%
     kable_styling(
         latex_options = c(
@@ -897,31 +914,108 @@ est_ponderados_nr_rf %>%
 @
 
 
+Una vez realizadas las estimaciones, se puede ver que las estimaciones difieren poco,
+además de un leve aumento en los errores estandar y coeficientes de variación, sin embargo
+se puede notar un aumento en el efecto diseño, así como también en el efecto diseño de Kish.
+\\
+
+Este último, si bien es mas alto que el anterior basandonos en la regla empírica, al momento,
+no debemos de preocuparnos. Por último, veremos un gráfico de dispersión de los ponderadores originales,
+respecto a los recién ajustados.
+\\
+
+<<echo = FALSE>>=
+muestra %>%
+    filter.(
+        R > 0
+    ) %>%
+    ggplot(
+        aes(
+            x = w0,
+            y = w_nr_boost
+        )
+    ) + 
+    geom_point(
+        size = 2
+    ) +
+    labs(
+        x = "Ponderadores originales",
+        y = "Ponderadores NR con boosting"
+    ) + 
+    theme_bw()
+@
+
+En base a este gráfico puede verse como se aumentarón los ponderadores algunos de ellos de forma considerable,si bien esto puede sonar alarmante los 
+encuestados respondentes tienen que brindar información sobre los que no respondierón, al tener tasas de respuesta bajas, la variación de los ponderadores,
+tiene que reflejar esa situación. 
+\\
+
+Algo a considerar, es que la estimación de la población obtenida con este nuevo sistema de ponderadores ($3.415.329$) siendo la original de ($3.518.412$) 
+son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta estimación crecia a casí el doble $6.582.193$.
+
 \subsection*{Parte c}
 
-<<>>=
-clases_prop = out = pclass(formula = R~estrato+sexo+edad+dpto,
-                           data = muestra, 
-                           type = "unwtd", 
-                           link="logit", numcl=5) %>%
-  as_tibble()
+Con el mismo modelo de la parte anterior vamos a ajustar la no respuesta médiante propensiones estratificadas, para ello vamos a 
+dividir las propensiones en sus quntiles y luego para cada grupo le asignaremos la propensión mediana. 
+\\
 
-muestra <- bind_cols(muestra, clases_prop)
-muestra <- muestra %>% 
-  group_by(p.class) %>%
-  mutate(ajuste_nr_clases=1/median(propensities)) %>%
-  ungroup()
+Primero realizaremos un histograma de estas propensiones : 
+
+<<echo = FALSE>>=
+muestra %>%
+    ggplot(
+        aes(
+            x = pred_boost
+        )
+    ) + 
+    geom_histogram(
+        bins = nrow(muestra) ^ 0.5,
+        fill = "blue",
+        alpha = 0.6
+    ) + 
+    theme_bw()
+@
+
+Podemos ver una distribución simetrica, centrada en valores poco mas grandes que 
+$1/2$ aproximandose al valor de la tasa de respuesta. 
+\\
+
+A continuación calcularemos las propensiones estratificadas utilizndo los quintiles de la distribución
+para agrupar y el estadístico utilizado para resumir el score será la mediana: 
+\newpage
+
+<<>>=
+
+muestra %<>%
+    mutate.(
+        boost_class = cut(
+            pred_boost,
+            breaks = quantile(
+                pred_boost,
+                probs = seq(0,1,1/5)
+            ),
+            include.lowest = TRUE
+        )
+    ) %>%
+    mutate.(
+        ajuste_boost_clases = 1/median(pred_boost),
+        .by = boost_class
+    ) %>%
+    mutate.(
+        w_nr_boost_clases = R * w0 * ajuste_boost_clases
+    )
+
 @
 
 <<>>=
 muestra %>%
     as_survey_design(
         ids = id_hogar,
-        weight = ajuste_nr_clases,
+        weight = w_nr_boost_clases,
         strata = estrato
     ) %T>%
     assign(
-        "diseño",
+        "diseño_nr_boost_clases",
         .,
         envir = .GlobalEnv
     ) %>%
@@ -944,6 +1038,10 @@ muestra %>%
             ingreso,
             deff = TRUE,
             vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost_clases,
+          type = "kish"
         )
     ) %>%
     assign(
@@ -953,9 +1051,10 @@ muestra %>%
     )
 @
 
-<<>>=
-est_ponderados_nr_clases %>%
+<<echo = FALSE>>=
+est_ponderados_nr_boost %>%
     pivot_longer.(
+        - deffK,
         names_to = "v",
         values_to = "value"
     ) %>%
@@ -998,7 +1097,8 @@ est_ponderados_nr_clases %>%
       estimacion,
       se,
       cv,
-      deff
+      deff,
+      deffK
     ) %>%
     set_names(
       c(
@@ -1006,12 +1106,13 @@ est_ponderados_nr_clases %>%
         "Estimación puntual",
         "Error estandar",
         "CV",
-        "deff"
+        "deff",
+        "Efecto diseño de Kish"
       )
     ) %>%
     kbl(
         booktabs = T,
-        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando las propensiones del punto anterior"
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando las propensiones del punto anterior por clases"
     ) %>%
     kable_styling(
         latex_options = c(
@@ -1024,6 +1125,139 @@ est_ponderados_nr_clases %>%
 \newpage
 
 \section*{Parte 3}
+
+Una vez realizado el ajuste por no respuesta, vamos a calibrar estos ponderadores en base 
+conteos poblacionales por departamento, sexo y edad. Primero construiremos los totales marginales: 
+
+<<>>=
+read_excel(
+    here(
+        "data",
+        "dpto.xlsx"
+    )
+) %>%
+rename.(
+    personas_dpto = personas 
+) %>%
+full_join.(
+    muestra,
+    by = "dpto"
+) %T>%
+assign(
+    "muestra",
+    .,
+    envir = .GlobalEnv
+) %>%
+pull.(
+    "personas_dpto"
+) %>%
+unique() %>%
+assign(
+    "total_dpto",
+    .,
+    envir = .GlobalEnv
+)
+
+edad_sexo <- read_excel(
+    here(
+        "data",
+        "sexo_edad.xlsx"
+    )
+)
+
+edad_sexo  %>%
+    mutate.(
+        total = hombres + mujeres,
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        edad_tramo = cut(
+            edad,
+            breaks = c(0,14,20,25,30,40,50,60,Inf),
+            right=FALSE
+        )
+    ) %>%
+    summarize.(
+        total = sum(total),
+        .by = "edad_tramo"
+    ) %>% 
+    rename.(
+        total_edad = total
+    ) %>%
+    full_join.(
+        muestra,
+        by = "edad_tramo"
+    )%T>%
+    assign(
+        "muestra",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    pull.(
+        "total_edad"
+    ) %>%
+    unique() %>%
+    assign(
+        "total_edad",
+        .,
+        envir = .GlobalEnv
+    )
+
+edad_sexo  %>%
+    summarize.(
+        hombres = sum(hombres),
+        mujeres = sum(mujeres)
+    ) %>%
+    pivot_longer.(
+        names_to = "sexo",
+        values_to = "valor"
+    ) %>%
+    rename.(
+        total_sexo = valor
+    ) %>%
+    mutate.(
+        sexo = ifelse.(
+            sexo == "hombres",
+            1,
+            2
+        )
+    ) %>%
+    full_join.(
+        muestra,
+        by = "sexo"
+    ) %T>%
+    assign(
+        "muestra",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    pull.(
+        "total_sexo"
+    ) %>%
+    unique() %>%
+    assign(
+        "total_sexo",
+         .,
+        envir = .GlobalEnv
+    )
+
+
+
+conteos <- c(
+    sum(muestra$w0),
+    total_dpto[-1],
+    total_edad[-1],
+    total_sexo[-1]
+)
+
+
+survey::calibrate(
+    design = diseño_nr_boost_clases,
+    formula = ~ dpto + edad_tramo + sexo,
+    population = conteos,
+    calfun="raking"
+) -> r1
+@
 
 \newpage
 

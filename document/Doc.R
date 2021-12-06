@@ -244,7 +244,7 @@ tasaRespuestapob %>%
     )
 
 
-## ----echo = FALSE-------------------------------------------------------------
+## -----------------------------------------------------------------------------
 muestra %>%
     summarize.(
         tr_w_estrato_dpto = weighted.mean(
@@ -270,7 +270,7 @@ muestra %<>%
         )
     ) %>%
     mutate.(
-        w_nr_post = w0/tr_w_estrato_dpto
+        w_nr_post = w0 / tr_w_estrato_dpto
     )
 
 
@@ -456,6 +456,415 @@ est_ponderados_nr %>%
     kbl(
         booktabs = T,
         caption = "Estimaciones poblacionales usando ponderadores por no respuesta"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+
+
+## ----echo = FALSE-------------------------------------------------------------
+muestra %>%
+    summarize.(
+        tr_w = mean(R),
+        .by = c(
+            "edad",
+            "sexo"
+        )
+    ) %>%
+    mutate.(
+        sexo = case_when.(
+            sexo == 1 ~ "Masculino",
+            TRUE ~ "Femenino"
+        )
+    ) %>%
+    ggplot(
+        aes(
+            x = edad,
+            y = tr_w 
+        )
+    ) + 
+    geom_point(
+        aes(
+            color = sexo
+        ),
+        size = 2
+    ) +
+    labs(
+        x = "Edad",
+        y = "Tasa de respuesta ponderada",
+        color = "Sexo"
+    ) + 
+    theme_bw() + 
+    theme(
+        legend.position = "bottom"
+    ) + 
+    scale_colour_viridis_d()
+
+
+## ----warning = FALSE----------------------------------------------------------
+boost_tree(
+    trees = 300
+) %>%
+set_engine(
+    "xgboost"
+) %>%
+set_mode(
+    "classification"
+) %>%
+fit(
+    as.factor(R) ~ estrato + sexo + edad + dpto, data = muestra
+) %>%
+assign(
+    "modelo_boost",
+    .,
+    envir = .GlobalEnv
+)
+
+
+## ----echo = FALSE-------------------------------------------------------------
+tibble(
+    predict(
+        modelo_boost,
+        muestra, 
+        type = "prob"
+    ),
+    predict(
+        modelo_boost,
+        muestra
+    )
+) %>%
+rename.(
+    pred_boost = .pred_1
+) %>%
+assign(
+    "pred_boost",
+    .,
+    envir = .GlobalEnv
+)
+
+nombres <- c(1,2)
+
+names(nombres) <- c("Predicción","Observados")
+
+
+conf_mat(
+  data = bind_cols(
+    select(muestra, R),
+    select(pred_boost,.pred_class)
+  ),
+  truth = R, 
+  estimate = .pred_class
+) %$%
+table %>%
+kbl(
+    booktabs = TRUE,
+    caption = "Matriz de confusión"
+) %>%
+add_header_above(
+    nombres
+) %>%
+kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+
+
+## -----------------------------------------------------------------------------
+
+muestra %<>%
+    bind_cols.(
+        pred_boost
+    ) %>%
+    mutate.(
+        w_nr_boost = (w0*R)/(pred_boost)
+    )
+
+
+## -----------------------------------------------------------------------------
+muestra %>%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_boost,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño_boost",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost,
+          type = "kish"
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr_boost",
+      .,
+      envir = .GlobalEnv
+    )
+
+
+## ----echo = FALSE-------------------------------------------------------------
+est_ponderados_nr_boost %>%
+    pivot_longer.(
+        - deffK,
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff,
+      deffK
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff",
+        "Efecto diseño de Kish"
+      )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando Boosting"
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+
+
+## ----echo = FALSE-------------------------------------------------------------
+muestra %>%
+    filter.(
+        R > 0
+    ) %>%
+    ggplot(
+        aes(
+            x = w0,
+            y = w_nr_boost
+        )
+    ) + 
+    geom_point(
+        size = 2
+    ) +
+    labs(
+        x = "Ponderadores originales",
+        y = "Ponderadores NR con boosting"
+    ) + 
+    theme_bw()
+
+
+## ----echo = FALSE-------------------------------------------------------------
+muestra %>%
+    ggplot(
+        aes(
+            x = pred_boost
+        )
+    ) + 
+    geom_histogram(
+        bins = nrow(muestra) ^ 0.5,
+        fill = "blue",
+        alpha = 0.6
+    ) + 
+    theme_bw()
+
+
+## -----------------------------------------------------------------------------
+
+muestra %<>%
+    mutate.(
+        boost_class = cut(
+            pred_boost,
+            breaks = quantile(
+                pred_boost,
+                probs = seq(0,1,1/5)
+            ),
+            include.lowest = TRUE
+        )
+    ) %>%
+    mutate.(
+        ajuste_boost_clases = 1/median(pred_boost),
+        .by = boost_class
+    ) %>%
+    mutate.(
+        w_nr_boost_clases = R * w0 * ajuste_boost_clases
+    )
+
+
+
+## -----------------------------------------------------------------------------
+muestra %>%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_boost_clases,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost_clases,
+          type = "kish"
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr_clases",
+      .,
+      envir = .GlobalEnv
+    )
+
+
+## ----echo = FALSE-------------------------------------------------------------
+est_ponderados_nr_boost %>%
+    pivot_longer.(
+        - deffK,
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff,
+      deffK
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff",
+        "Efecto diseño de Kish"
+      )
+    ) %>%
+    kbl(
+        booktabs = T,
+        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando las propensiones del punto anterior por clases"
     ) %>%
     kable_styling(
         latex_options = c(
