@@ -1,5 +1,5 @@
 Doc.log
-document/figure/* 
+document/figure/*
 Doc.aux
 Doc.bbl
 Doc.bcf
@@ -13,3 +13,6 @@ Doc.synctex.gz
 Doc.tex
 document/Doc.fdb_latexmk
 .Rproj.user
+.Rhistory
+.RData
+.Ruserdata
