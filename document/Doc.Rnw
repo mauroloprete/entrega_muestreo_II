@@ -85,7 +85,9 @@ pacman::p_load(
     kableExtra,
     magrittr,
     ggplot2,
-    tidymodels
+    tidymodels,
+    xgboost,
+    PracTools
 )
 
 here(
@@ -141,7 +143,7 @@ A continuación se muestra el código utilizado para realizar las diferentes est
 <<>>=
 muestra %>%
     as_survey_design(
-        ids = 1,
+        ids = id_hogar,
         weight = w0,
         strata = estrato
     ) %T>%
@@ -159,7 +161,7 @@ muestra %>%
             activo,
             deff = TRUE,
             vartype = c("se","cv")
-        ) * 100,
+        ),
         pobre = survey_mean(
             pobreza,
             deff = TRUE,
@@ -251,18 +253,9 @@ Los resultados se encuentran en el siguiente cuadro:
 @
 
 
-En base al cuadro, podemos ver que los errores estandar son relativamente chicos, en cambio podemos 
-notar una gran variabilidad en las estimaciones para la tasa de desempleo entre muestra y muestra,
-esto es, si consideramos el coeficiente de variación. 
-\\
-
-A lo que refiere al efecto diseño, que recordemos, refiere a la reducción (o aumento de varianza)
-respecto a un diseño simple, se puede ver que son valores coherentes, ya que recordemos que
-el diseño de esta encuesta cuenta con varias etapas de selección.
-\\
-
-Este estadístico tiene el mismo problema que el coeficiente de variación a lo que refiere
-a las estimaciones de la tasa de desoupación, llamando nuestra atención.
+En base al cuadro, podemos ver que los errores estandar son relativamente chicos, de manera
+análoga podemos tomar el incremento de varianza respecto a un diseño simple, en base 
+al $deff$, estos son altos debido al diseño en varias etapas de esta encuesta.
 
 
 % # TODO Mauro ver clase de JP con el nuevo diseño y poner algo de eso!
@@ -381,33 +374,140 @@ cubriendo una vez que expanda la muestra}, que para este caso particular, \textb
 
 \section*{Parte 2}
 
-\subsection{Parte a}
+\subsection*{Parte a}
 
-<<>>=
-ajuste_nr_estrato= muestra %>% 
-  group_by(estrato) %>% 
-  summarise(tr=mean(as.numeric(R)), 
-            tr_w = weighted.mean(as.numeric(R), w0))
+A continuación se calcuara la tasa de respuesta asumiento un patrón del tipo MAR, es decir, la no respuesta depende de covariables no utilizadas para la estimación.
 
-muestra  =left_join(muestra, 
-                    select(ajuste_nr_estrato, estrato, tr_w)) %>%
-  mutate(w_nr_post=w0/tr_w)
+Los diferentes grupos de no respuesta se construiran en base al departamento y estrato al que pertenecen, para aprovechar al máximo las variables consideradas en el marco.
+\\
 
-# ggplot(muestra, aes(x = w0, y =  w_nr_post, color=estrato)) + geom_point()
+A exepción de Montevideo, Canelones y San José, a cada departamento se le imputara la tasa de respuesta de su mismo departamento. 
+Esto puede llegar a hacer diferencias ya que si resumimos esta variable considerando la interacción de estos dos grupos,
+se pueden encontrar diferentes comportamientos en la tasa de respuesta :
+
+
+<<echo = FALSE>>=
+muestra %>%
+    summarize.(
+        tr_w_estrato_dpto = weighted.mean(
+            R
+        ),
+        .by = c(
+            "estrato",
+            "dpto"
+        )
+    ) %>%
+    assign(
+        "tr_estrato_dpto",
+        .,
+        envir = .GlobalEnv
+    )
+
+muestra %<>%
+    left_join.(
+        tr_estrato_dpto,
+        by = c(
+            "estrato" = "estrato",
+            "dpto" = "dpto"
+        )
+    ) %>%
+    mutate.(
+        w_nr_post = w0/tr_w_estrato_dpto
+    )
 
 
 @
 
-Para el cálculo de los ponderadores por no respuesta lo primero fue realizar un ajuste de no respuesta mediante el uso de información del marco muestral, en este caso se hizo por los estratos definidos. 
+<<echo = FALSE>>=
+tr_estrato_dpto %>%
+    mutate.(
+        dpto_label = case_when.(
+            dpto == 1 ~ "Montevideo",
+            dpto == 3 ~ "Canelones",
+            dpto == 16 ~ "San José"
+        )
+    ) %>%
+    mutate.(
+      estrato_label = case_when.(
+          estrato == 1 ~ "Montevideo Bajo",
+          estrato == 2 ~ "Montevideo Medio Bajo",
+          estrato == 3 ~ "Montevideo medio",
+          estrato == 4 ~ "Montevideo medio alto",
+          estrato == 5 ~ "Montevideo Alto",
+          estrato == 6 ~ "Zona metropolitana",
+          estrato == 7 ~ "Interior norte",
+          estrato == 8 ~ "Costa Este",
+          estrato == 9 ~ "Litoral Norte",
+          estrato == 10 ~ "Litoral sur",
+          estrato == 11 ~ "Centro Norte",
+          estrato == 12 ~ "Centro sur"
+      )
+    ) %>%
+    filter.(
+        dpto %in% c(
+            1,
+            3,
+            16
+        )
+    ) %>%
+    ggplot(
+        aes(
+            x = as.factor(estrato),
+            y = tr_w_estrato_dpto,
+            color = estrato_label
+        )
+    ) + 
+    geom_segment(
+        aes(
+            xend = as.factor(estrato),
+            y = 0,
+            yend = tr_w_estrato_dpto
+        ),
+        size = 0.9
+    ) + 
+    geom_point() + 
+    scale_y_continuous(
+        labels = scales::percent,
+        limits = c(0, NA)
+    ) + 
+    facet_wrap(
+        vars(
+            dpto_label
+        ),
+        scales = "free_x"
+    ) + 
+    labs(
+        x = "",
+        y = "Tasa de respuesta ponderada",
+        color = "Estrato"
+    ) + 
+    theme_bw() + 
+    theme(
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom"
+    ) + 
+    scale_colour_viridis_d(
+        option = "inferno"
+    )
+@
+
+
+En base a la gráfica podemos ver diferentes comportamientos en los diferentes departamentos, aunque la mayor diferencia se nota
+en San José, con una tasa de respuesta mayor en el Litoral Sur respecto al de la zona metropolitana.
 \\
 
-Luego se unió estos nuevos ponderadores por no respuesta a la muestra original. Observamos como los ponderadores por no respuesta aumentaron. 
+A lo que refiere a Montevideo, se puede ver una relación creciente (no monotona gracias al estrato medio alto) al estrato referido al 
+contexto economico \footnote{Asumiendo que los estratos son los mismos que el de la ECH} para la tasa de respuesta, mientras que para
+Canelones no se notan grandes diferencias.
+\\
 
+Una vez hecho esto, continuaremos con el ajuste por no respuesta para los ponderadores originales : 
 
 <<>>=
 muestra %>%
     as_survey_design(
-        ids = 1,
+        ids = id_hogar,
         weight = w_nr_post,
         strata = estrato
     ) %T>%
@@ -425,7 +525,7 @@ muestra %>%
             activo,
             deff = TRUE,
             vartype = c("se","cv")
-        ) * 100,
+        ),
         pobre = survey_mean(
             pobreza,
             deff = TRUE,
@@ -435,6 +535,10 @@ muestra %>%
             ingreso,
             deff = TRUE,
             vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_post,
+          type = "kish"
         )
     ) %>%
     assign(
@@ -444,9 +548,12 @@ muestra %>%
     )
 @
 
-<<>>=
+Resultando así, las estimaciones del punto anterior y considerando además el \textit{Efecto diseño de Kish} que nos indica cuanto au
+
+<<echo = FALSE>>=
 est_ponderados_nr %>%
     pivot_longer.(
+        - deffK,
         names_to = "v",
         values_to = "value"
     ) %>%
@@ -489,7 +596,8 @@ est_ponderados_nr %>%
       estimacion,
       se,
       cv,
-      deff
+      deff,
+      deffK
     ) %>%
     set_names(
       c(
@@ -497,7 +605,8 @@ est_ponderados_nr %>%
         "Estimación puntual",
         "Error estandar",
         "CV",
-        "deff"
+        "deff",
+        "Efecto diseño de Kish"
       )
     ) %>%
     kbl(
@@ -512,280 +621,7 @@ est_ponderados_nr %>%
     )
 @
 
-\subsection{Parte b}
 
-<<>>=
-modelo_rf = rand_forest( trees = 200) %>%
-  set_engine(’ranger’) %>%
-  set_mode(’classification’) %>%
-  fit(R ~ estrato + sexo + edad + dpto + id_hogar, data = muestra)
-
-# modelo_rf <- boost_tree(trees = 1000) %>%
-#  set_engine('xgboost') %>%
-# set_mode('classification') %>% 
-#  fit(medv~., data=boston_train)
-
-modelo_rf
-@
-
-
-<<>>=
-pred_rf <- tibble(predict(rf_model, muestra, type = ’prob’),
-                predict(rf_model, muestra))
-
-matriz_confusion <- (data = bind_cols(select(muestra, R),
-                          select(pred_rf,.pred_class)),
-         truth = R, 
-         estimate = .pred_class)
-
-pred_rf <- pred_rf %>% rename(prop_rf =.pred_1)
-muestra <- muestra %>% bind_cols(select(pred_rf, prop_rf))
-
-muestra <- muestra %>% mutate(w_nr_rf = ifelse(R==1, base_weights/prop_rf,0))
-@
-
-<<>>=
-muestra %>%
-    as_survey_design(
-        ids = 1,
-        weight = w_nr_rf,
-        strata = estrato
-    ) %T>%
-    assign(
-        "diseño",
-        .,
-        envir = .GlobalEnv
-    ) %>%
-    filter(
-        R > 0
-    ) %>%
-    summarize(
-        td = survey_ratio(
-            desocupado,
-            activo,
-            deff = TRUE,
-            vartype = c("se","cv")
-        ) * 100,
-        pobre = survey_mean(
-            pobreza,
-            deff = TRUE,
-            vartype = c("se","cv")
-        ),
-        yprom = survey_mean(
-            ingreso,
-            deff = TRUE,
-            vartype = c("se","cv")
-        )
-    ) %>%
-    assign(
-      "est_ponderados_nr_rf",
-      .,
-      envir = .GlobalEnv
-    )
-@
-
-<<>>=
-est_ponderados_nr_rf %>%
-    pivot_longer.(
-        names_to = "v",
-        values_to = "value"
-    ) %>%
-    mutate.(
-        tipo = stringr::str_extract(
-            v,
-            "[a-z]*$"
-        ),
-        variable = stringr::str_extract(
-            v,
-            "^[a-z]*"
-        ),
-        .keep = "unused"
-    ) %>%
-    mutate.(
-        tipo = fct_collapse(
-            tipo,
-            "estimacion" = c(
-                "td",
-                "yprom",
-                "pobre"
-            )
-        )
-    ) %>%
-    mutate.(
-        across.(
-            where(is.numeric),
-            ~ round(
-                .x,
-                3
-            )
-        )
-    ) %>%
-    pivot_wider.(
-        names_from = "tipo",
-        values_from = "value"
-    ) %>%
-    relocate.(
-      variable,
-      estimacion,
-      se,
-      cv,
-      deff
-    ) %>%
-    set_names(
-      c(
-        "Variable",
-        "Estimación puntual",
-        "Error estandar",
-        "CV",
-        "deff"
-      )
-    ) %>%
-    kbl(
-        booktabs = T,
-        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando random forest"
-    ) %>%
-    kable_styling(
-        latex_options = c(
-            "striped",
-            "hold_position"
-        )
-    )
-@
-
-
-\subsectio{Parte c}
-
-<<>>=
-clases_prop = out = pclass(formula = R~estrato+sexo+edad+id_hogar+dpto,
-                           data = muestra, 
-                           type = "unwtd", 
-                           link="logit", numcl=5) %>%
-  as_tibble()
-
-muestra <- bind_cols(muestra, clases_prop)
-muestra <- muestra %>% 
-  group_by(p.class) %>%
-  mutate(ajuste_nr_clases=1/median(propensities)) %>%
-  ungroup()
-@
-
-<<>>=
-muestra %>%
-    as_survey_design(
-        ids = 1,
-        weight = ajuste_nr_clases,
-        strata = estrato
-    ) %T>%
-    assign(
-        "diseño",
-        .,
-        envir = .GlobalEnv
-    ) %>%
-    filter(
-        R > 0
-    ) %>%
-    summarize(
-        td = survey_ratio(
-            desocupado,
-            activo,
-            deff = TRUE,
-            vartype = c("se","cv")
-        ) * 100,
-        pobre = survey_mean(
-            pobreza,
-            deff = TRUE,
-            vartype = c("se","cv")
-        ),
-        yprom = survey_mean(
-            ingreso,
-            deff = TRUE,
-            vartype = c("se","cv")
-        )
-    ) %>%
-    assign(
-      "est_ponderados_nr_clases",
-      .,
-      envir = .GlobalEnv
-    )
-@
-
-<<>>=
-est_ponderados_nr_clases %>%
-    pivot_longer.(
-        names_to = "v",
-        values_to = "value"
-    ) %>%
-    mutate.(
-        tipo = stringr::str_extract(
-            v,
-            "[a-z]*$"
-        ),
-        variable = stringr::str_extract(
-            v,
-            "^[a-z]*"
-        ),
-        .keep = "unused"
-    ) %>%
-    mutate.(
-        tipo = fct_collapse(
-            tipo,
-            "estimacion" = c(
-                "td",
-                "yprom",
-                "pobre"
-            )
-        )
-    ) %>%
-    mutate.(
-        across.(
-            where(is.numeric),
-            ~ round(
-                .x,
-                3
-            )
-        )
-    ) %>%
-    pivot_wider.(
-        names_from = "tipo",
-        values_from = "value"
-    ) %>%
-    relocate.(
-      variable,
-      estimacion,
-      se,
-      cv,
-      deff
-    ) %>%
-    set_names(
-      c(
-        "Variable",
-        "Estimación puntual",
-        "Error estandar",
-        "CV",
-        "deff"
-      )
-    ) %>%
-    kbl(
-        booktabs = T,
-        caption = "Estimaciones poblacionales usando ponderadores por no respuesta utilizando las propensiones del punto anterior"
-    ) %>%
-    kable_styling(
-        latex_options = c(
-            "striped",
-            "hold_position"
-        )
-    )
-@
-
-\newpage
-
-\section*{Parte 3}
-
-\newpage
-
-\section*{Parte 4}
-
-\newpage
 
 \section*{Referencias}
 \nocite{*}
