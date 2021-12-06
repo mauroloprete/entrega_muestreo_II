@@ -1257,6 +1257,7 @@ survey::calibrate(
     population = conteos,
     calfun="raking"
 ) -> r1
+
 @
 
 \newpage
