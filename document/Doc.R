@@ -891,15 +891,6 @@ read_excel(
 rename.(
     personas_dpto = personas 
 ) %>%
-full_join.(
-    muestra,
-    by = "dpto"
-) %T>%
-assign(
-    "muestra",
-    .,
-    envir = .GlobalEnv
-) %>%
 pull.(
     "personas_dpto"
 ) %>%
@@ -936,15 +927,6 @@ edad_sexo  %>%
     rename.(
         total_edad = total
     ) %>%
-    full_join.(
-        muestra,
-        by = "edad_tramo"
-    )%T>%
-    assign(
-        "muestra",
-        .,
-        envir = .GlobalEnv
-    ) %>%
     pull.(
         "total_edad"
     ) %>%
@@ -974,15 +956,6 @@ edad_sexo  %>%
             2
         )
     ) %>%
-    full_join.(
-        muestra,
-        by = "sexo"
-    ) %T>%
-    assign(
-        "muestra",
-        .,
-        envir = .GlobalEnv
-    ) %>%
     pull.(
         "total_sexo"
     ) %>%
@@ -1003,10 +976,51 @@ conteos <- c(
 )
 
 
+
+## -----------------------------------------------------------------------------
 survey::calibrate(
     design = diseño_nr_boost_clases,
-    formula = ~ dpto + edad_tramo + sexo,
+    formula = ~ as.factor(dpto) + edad_tramo + as.factor(sexo),
     population = conteos,
-    calfun="raking"
-) -> r1
+    calfun = "raking",
+    bounds = c(
+      -1.3,
+      1.3
+    ),
+    maxit = 100,
+    bounds.const = FALSE
+) %>%
+assign(
+    "w_nr_calibrados",
+    .,
+    envir = .GlobalEnv
+)
+
+muestra %<>%
+    mutate.(
+        w_nr_boost_clases_calibrados = weights(
+            w_nr_calibrados
+        )
+    )
+
+
+
+## ----echo = FALSE,message=FALSE,warning=FALSE---------------------------------
+muestra %>%
+  filter.(
+    R > 0
+  ) %>%
+ggplot(
+    aes(
+        x = w_nr_boost_clases,
+        y = w_nr_boost_clases_calibrados
+    )
+) + 
+geom_point() + 
+geom_smooth() +
+theme(
+  aspect.ratio = 1
+) + 
+theme_bw()
+
 
