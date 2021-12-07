@@ -283,7 +283,7 @@ muestra %<>%
 
 
 
-## ----echo = FALSE-------------------------------------------------------------
+## ----echo = FALSE,fig.cap= "Tasa de respuesta ponderada por departamento y estrato"----
 tr_estrato_dpto %>%
     mutate.(
         dpto_label = case_when.(
@@ -707,7 +707,7 @@ est_ponderados_nr_boost %>%
     )
 
 
-## ----echo = FALSE-------------------------------------------------------------
+## ----echo = FALSE,fig.cap= "Gráfica de dispersión de ponderadores originales vs propensiones con Boosting"----
 muestra %>%
     filter.(
         R > 0
@@ -728,7 +728,7 @@ muestra %>%
     theme_bw()
 
 
-## ----echo = FALSE-------------------------------------------------------------
+## ----echo = FALSE,fig.cap = "Histograma de propensiones del método Boosting"----
 muestra %>%
     ggplot(
         aes(
@@ -781,7 +781,7 @@ muestra %>%
     filter(
         R > 0
     ) %>%
-    summarize.(
+    summarize(
         td = survey_ratio(
             desocupado,
             activo,
@@ -1005,7 +1005,7 @@ muestra %<>%
 
 
 
-## ----echo = FALSE,message=FALSE,warning=FALSE---------------------------------
+## ----echo = FALSE,message=FALSE,warning=FALSE,fig.cap= "Gráfico de dispersión de ponderadores por clases vs calibrados"----
 muestra %>%
   filter.(
     R > 0
@@ -1175,7 +1175,7 @@ mutate.(
 ) %>% 
 kbl(
   booktabs = TRUE,
-  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+  caption = "Estimación del ingreso promedio usando método del último conglomerado por Departamento"
 ) %>% 
 kable_styling(
     latex_options = c(

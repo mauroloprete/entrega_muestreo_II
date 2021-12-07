@@ -425,7 +425,7 @@ muestra %<>%
 
 @
 
-<<echo = FALSE>>=
+<<echo = FALSE,fig.cap= "Tasa de respuesta ponderada por departamento y estrato">>=
 tr_estrato_dpto %>%
     mutate.(
         dpto_label = case_when.(
@@ -917,7 +917,7 @@ Por último, veremos un gráfico de dispersión de los ponderadores originales,
 respecto a los recién ajustados.
 \\
 
-<<echo = FALSE>>=
+<<echo = FALSE,fig.cap= "Gráfica de dispersión de ponderadores originales vs propensiones con Boosting">>=
 muestra %>%
     filter.(
         R > 0
@@ -953,7 +953,7 @@ Con el mismo modelo de la parte anterior se ajustarán las no respuesta mediante
 
 Primero realizaremos un histograma de estas propensiones : 
 
-<<echo = FALSE>>=
+<<echo = FALSE,fig.cap = "Histograma de propensiones del método Boosting">>=
 muestra %>%
     ggplot(
         aes(
@@ -1014,7 +1014,7 @@ muestra %>%
     filter(
         R > 0
     ) %>%
-    summarize.(
+    summarize(
         td = survey_ratio(
             desocupado,
             activo,
@@ -1254,7 +1254,7 @@ muestra %<>%
 Si realizamos un diagrama de dispersión de los ponderadores calibrados y los obtenidos en el punto anterior,
 podemos ver su cambio. Si al utilizar trimming en el raking, los totales poblacionales de variables auxiliares no se cumplen de manera exacta para cada grupo, aunque sigue estimando sin error el total poblacional fijado con los ponderadores originales.
 
-<<echo = FALSE,message=FALSE,warning=FALSE>>=
+<<echo = FALSE,message=FALSE,warning=FALSE,fig.cap= "Gráfico de dispersión de ponderadores por clases vs calibrados">>=
 muestra %>%
   filter.(
     R > 0
@@ -1437,7 +1437,7 @@ mutate.(
 ) %>% 
 kbl(
   booktabs = TRUE,
-  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+  caption = "Estimación del ingreso promedio usando método del último conglomerado por Departamento"
 ) %>% 
 kable_styling(
     latex_options = c(
@@ -1446,6 +1446,8 @@ kable_styling(
     )
 )
 @
+
+\newpage
 
 \subsection*{Usando boostrap Rao-Wu}
 
