@@ -472,7 +472,7 @@ est_ponderados_nr %>%
     )
 
 
-## ----echo = FALSE----------------------------------------------------------------------------------------------------------
+## ----echo = FALSE, fig.caption="Gráfico de dispersión tasa de respuesta por edad y sexo"-----------------------------------
 muestra %>%
     summarize.(
         tr_w = mean(R),
@@ -1026,6 +1026,9 @@ theme_bw()
 
 
 ## --------------------------------------------------------------------------------------------------------------------------
+
+library(survey)
+
 muestra %<>%
   mutate.(
     desocupado = replace_na.(
@@ -1046,7 +1049,7 @@ disenio_final <- as_survey_design(
   strata = estrato
 )
 
-disenio_final_rep <- as.svrepdesign(
+disenio_final_rep <- survey::as.svrepdesign(
   disenio_final,
   type = "subbootstrap",
   replicates = 500
@@ -1055,48 +1058,265 @@ disenio_final_rep <- as.svrepdesign(
 
 
 ## --------------------------------------------------------------------------------------------------------------------------
+survey::svyby(
+  formula = ~ desocupado,
+  by = ~ dpto,
+  FUN = svyratio,
+  design = disenio_final,
+  denominator = ~ activo,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de desempleo usando el último conglomerado por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
 
 
-svyby(
+survey::svyby(
+  formula = ~ pobreza,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de pobreza usando el último conglomerado por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+muestra %>% 
+  filter.(
+    edad >= 25,
+    ocupado == 1
+  ) %>% 
+as_survey_design(
+  .,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+) %>%
+  assign(
+    "disenio_final_aux",
+    .,
+    envir = .GlobalEnv
+  )
+
+survey::svyby(
+  formula = ~ ingreso,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_aux,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+## --------------------------------------------------------------------------------------------------------------------------
+survey::svyby(
   formula = ~ desocupado,
   by = ~ dpto,
   FUN = svyratio,
   design = disenio_final_rep,
   denominator = ~ activo,
-  deff = TRUE,
-  vartype = "ci"
+  vartype = c("ci","se","cv")
 ) %>% 
-confint()
-kbl()
-
-svyratio(
-  ~ desocupado,
-  ~ activo,
-  disenio_final_rep,
-  separate = dpto
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
 )
 
 
-
-
-
-  summarize(
-        td = survey_ratio(
-            desocupado,
-            activo,
-            deff = TRUE,
-            na.rm = TRUE, = TRUE,
-            vartype = c("se","cv")
-        ),
-        pobre = survey_mean(
-            pobreza,
-            deff = TRUE,
-            vartype = c("se","cv")
-        ),
-        yprom = survey_mean(
-            ingreso,
-            deff = TRUE,
-            vartype = c("se","cv")
-        )
+survey::svyby(
+  formula = ~ pobreza,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_rep,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de pobreza usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
     )
+)
+
+muestra %>% 
+  filter.(
+    edad >= 25,
+    ocupado == 1
+  ) %>% 
+as_survey_design(
+  .,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+) %>%
+  assign(
+    "disenio_final_aux",
+    .,
+    envir = .GlobalEnv
+  )
+
+disenio_final_rep_aux <- survey::as.svrepdesign(
+  disenio_final_aux,
+  type = "subbootstrap",
+  replicates = 500
+)
+
+
+survey::svyby(
+  formula = ~ ingreso,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_rep_aux,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
 
