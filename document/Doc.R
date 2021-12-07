@@ -472,7 +472,7 @@ est_ponderados_nr %>%
     )
 
 
-## ----echo = FALSE-------------------------------------------------------------
+## ----echo = FALSE, fig.caption="Gráfico de dispersión tasa de respuesta por edad y sexo"----
 muestra %>%
     summarize.(
         tr_w = mean(R),
@@ -982,6 +982,7 @@ survey::calibrate(
     design = diseño_nr_boost_clases,
     formula = ~ as.factor(dpto) + edad_tramo + as.factor(sexo),
     population = conteos,
+<<<<<<< HEAD
     calfun = "raking",
     bounds = c(
       -1.3,
@@ -1023,4 +1024,11 @@ theme(
 ) + 
 theme_bw()
 
+=======
+    calfun="raking",
+    bounds
+) -> r1
+>>>>>>> 19834db51533c71ab529d672011b346d2ed608c1
+
+summary(weights(r1))
 

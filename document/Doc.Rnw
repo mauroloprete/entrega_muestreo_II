@@ -260,28 +260,23 @@ Los resultados se encuentran en el siguiente cuadro:
 @
 
 
-En base al cuadro, podemos ver que los errores estandar son relativamente chicos, de manera
-análoga podemos tomar el incremento de varianza respecto a un diseño simple, en base 
-al $deff$, estos son altos debido al diseño en varias etapas de esta encuesta.
+Con base en el cuadro, se puede ver que los errores estándar son relativamente chicos.
 
+Analizando el incremento de varianza respecto a un diseño simple, haciendo uso del efecto $deff$, puede verse como las mismas son altas debido al diseño en varias etapas de esta encuesta.
 
-% # TODO Mauro ver clase de JP con el nuevo diseño y poner algo de eso!
 
 \subsection*{Tasa de no respuesta}
 
-Desde un enfoque deterministico de la no respuesta, podemos dividir a la muestra en aquellos
-individuos que respondierón y en aquellos que no lo hicierón. 
+Un enfoque determinista de la tasa de no respuesta plantea a la misma como el cociente entre la cantidad de personas que sí respondieron a la pregunta de interés y el total de personas de la muestra.
 
-Es decir, podemos particionar la muestra en aquellos respondentes $r_{u}$ y no respondentes $s-r_{u}$.
+Es decir, es posible particionar la muestra en los respondentes $r_{u}$ y no respondentes $s-r_{u}$.
 \\
-
-Una medida de interés, es ver la proporción de respuestas en nuestra muestra, definida como :
 
 \begin{equation*}
     p_{r_{u}} = \frac{n_{r_{u}}}{n_{s}}
 \end{equation*}
 
-Para nuestra muestra particular, este dato viene dado por : 
+Para nuestra muestra particular, esta medida viene dada por : 
 
 <<>>=
 muestra %>%
@@ -373,9 +368,11 @@ tasaRespuestapob %>%
     )
 @
 
-De manera análoga, la tasa de respuesta es identica a la anterior, si consideramos dos cifras significativas.
-Esta estimación puede tener la siguiente interpretación : \textit{el porcentaje de la población que estoy 
-cubriendo una vez que expanda la muestra}, que para este caso particular, \textbf{es sumamente bajo}.
+Considerando 2 cifras significativas en el análisis, la tasa calculada en esta sección coincide con la anterior.
+\\
+
+Esta estimación tiene la siguiente interpretación : \textit{ \%54 es el porcentaje de la población que estoy 
+cubriendo una vez expandida la muestra}, que para este caso particular, \textbf{es sumamente bajo}.
 
 \newpage
 
@@ -383,20 +380,18 @@ cubriendo una vez que expanda la muestra}, que para este caso particular, \textb
 
 \subsection*{Parte a}
 
-A continuación se calcuara la tasa de respuesta asumiento un patrón del tipo MAR, es decir, la no respuesta depende de covariables no utilizadas para la estimación.
+A continuación se calcuara la tasa de respuesta asumiendo un patrón del tipo MAR. En el mismo se supone que la tasa de respuesta puede ser expresada como una función de un set de covariables, es decir $\Phi_{i}=\Phi_{i}(\vec{X})$.
 \\
 
 Este tipo de estrategia se basa en crear grupos de individuos con comportamiento similar en la no respuesta, a todos los ponderadores considerados dentro del mismo
-grupo se le aplicara el mismo ajuste $\Phi_{i}$ a los ponderadores del i-ésimo grupo.
+grupo se le aplicara el mismo ajuste $\Phi_{i}$.
 \\
 
-Los diferentes grupos de no respuesta se construiran en base al departamento y estrato al que pertenecen, para aprovechar al máximo las variables consideradas en el marco.
+Los diferentes grupos de no respuesta se construirán con base en el departamento y estrato al que pertenecen, para aprovechar al máximo las variables consideradas en el marco.
 \\
 
-A exepción de Montevideo, Canelones y San José, a cada departamento se le imputara la tasa de respuesta de su mismo departamento. 
-Esto puede llegar a hacer diferencias ya que si resumimos esta variable considerando la interacción de estos dos grupos,
-se pueden encontrar diferentes comportamientos en la tasa de respuesta :
-\\
+A exepción de Montevideo, Canelones y San José que presentan comportamientos disímiles entre algunos subsectores, a cada departamento se le imputara la tasa de respuesta de su mismo departamento. 
+
 
 <<>>=
 muestra %>%
@@ -505,16 +500,16 @@ tr_estrato_dpto %>%
 @
 
 
-En base a la gráfica podemos ver diferentes comportamientos en los diferentes departamentos, aunque la mayor diferencia se nota
+La gráfica ilustra los diferentes comportamientos de la tasa de respuesta en los diferentes departamentos, aunque la mayor diferencia se nota
 en San José, con una tasa de respuesta mayor en el Litoral Sur respecto al de la zona metropolitana.
 \\
 
-A lo que refiere a Montevideo, se puede ver una relación creciente (no monotona gracias al estrato medio alto) al estrato referido al 
-contexto economico \footnote{Asumiendo que los estratos son los mismos que el de la ECH} para la tasa de respuesta, mientras que para
+En lo que refiere a Montevideo,puedese puede ver una relación creciente (no monótona debido al estrato medio alto) al estrato referido al 
+contexto económico \footnote{Asumiendo que los estratos son los mismos que el de la ECH} para la tasa de respuesta, mientras que para
 Canelones no se notan grandes diferencias.
 \newpage
 
-Una vez hecho esto, continuaremos con el ajuste por no respuesta para los ponderadores originales: 
+Una vez hecho esto, se continuará con el ajuste por no respuesta para los ponderadores originales: 
 \\
 
 <<>>=
@@ -634,8 +629,7 @@ est_ponderados_nr %>%
     )
 @
 
-Una vez realizado el ajuste, las estimaciones de las variables, además de las referidas a
-las del error estandar, el coeficiente de variación y efecto diseño, difierón poco respecto a un enfoque deterministico.
+Una vez realizado el ajuste, estimaciones de las variables, cálculo de error estándar, coeficiente de variación y efecto diseño, los mismos difirieron un poco con los calculados en el enfoque determinístico.
 \\
 
 Algo que puede llamar la atención es como bajó el ingreso promedio, así como todas las estimaciones referidas
@@ -646,16 +640,16 @@ poco considerable en la variabilidad de los ponderadores, respecto a un diseño 
 
 \subsection*{Parte b}
 
-Mediante el uso de modelos de Machine Learning de aprendizaje supervizado, estimaremos el \textit{propensity score} 
-conocidos como \textbf{Gradient boosting}.
+Mediante el uso de modelos de Machine Learning de aprendizaje supervizado, estimaremos el \textit{propensity score}. Se hizo uso del método de \textbf{Gradient boosting}.
 \\
 
-Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados,
-la diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
-paso se minimiza una función de pérdida (predicciónes contra valores observados). 
+Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados.
+
+La diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
+paso se minimiza una función de pérdida (predicciones contra valores observados). 
 \\
 
-Este tipo de modelos supera a los del tipo de RF, ya que cada nuevo árbol de clasficación se genera tomando en cuenta 
+Este tipo de modelos supera a los del tipo de RF, ya que cada nuevo árbol de clasificación se genera tomando en cuenta 
 los errores del paso anterior y no simplemente por azar.
 \\
 
@@ -663,7 +657,7 @@ Dado que este tipo de modelos tiende a tener problemas de sobreajuste, debemos d
 en nuestro caso 200.
 \\
 
-<<echo = FALSE>>=
+<<echo = FALSE, fig.caption="Gráfico de dispersión tasa de respuesta por edad y sexo">>=
 muestra %>%
     summarize.(
         tr_w = mean(R),
@@ -702,10 +696,8 @@ muestra %>%
     scale_colour_viridis_d()
 @
 
-Salvo exepciones, puede verse que en edades jovenes y adultas la tasa de respuesta se encuentra sin diferencias
-por sexo, aunque en edades ancianas, la tasa de respuesta en mujeres tiende a aumentar respecto a la de los hombres,
+Salvo exepciones, puede verse que en edades jovenes y adultas la tasa de respuesta no es diferente según sexo. En edades ancianas, la tasa de respuesta en mujeres tiende a aumentar respecto a la de los hombres,
 es por esto que sería bueno incluir estas dos variables en el modelo de clasificación.
-\newpage
 
 
 <<warning = FALSE>>=
@@ -729,7 +721,7 @@ assign(
 @
 
 \newpage
-
+\subsubsection*{Análisis de ajuste}
 <<echo = FALSE>>=
 tibble(
     predict(
@@ -781,7 +773,7 @@ kable_styling(
 @
 
 A lo que refiere a la sensibilidad del modelo podemos ver que es de $70 \%$, mientras que la especificidad es de
-un casi $62 \%$ y un error total de $31 \%$ , calculamos las propensiones individuales y ajustamos los ponderadores
+un casi $62 \%$ y un error total de $31 \%$ . Se calculan las propensiones individuales y ajustamos los ponderadores
 por no respuesta:
 \\
 
@@ -914,13 +906,14 @@ est_ponderados_nr_boost %>%
 @
 
 
-Una vez realizadas las estimaciones, se puede ver que las estimaciones difieren poco,
-además de un leve aumento en los errores estandar y coeficientes de variación, sin embargo
+Una vez realizadas las estimaciones, se puede ver que las estimaciones difieren poco.
+Se nota a su vez un leve aumento en los errores estándar y coeficientes de variación, sin embargo
 se puede notar un aumento en el efecto diseño, así como también en el efecto diseño de Kish.
 \\
 
-Este último, si bien es mas alto que el anterior basandonos en la regla empírica, al momento,
-no debemos de preocuparnos. Por último, veremos un gráfico de dispersión de los ponderadores originales,
+Este último, si bien es mas alto que el anterior basándonos en la regla empírica, no es algo para preocuparse por el momento.
+
+Por último, veremos un gráfico de dispersión de los ponderadores originales,
 respecto a los recién ajustados.
 \\
 
@@ -945,8 +938,8 @@ muestra %>%
     theme_bw()
 @
 
-En base a este gráfico puede verse como se aumentarón los ponderadores algunos de ellos de forma considerable,si bien esto puede sonar alarmante los 
-encuestados respondentes tienen que brindar información sobre los que no respondierón, al tener tasas de respuesta bajas, la variación de los ponderadores,
+En este gráfico puede verse como se aumentaron los ponderadores, algunos de ellos de forma considerable. Si bien esto puede sonar alarmante los 
+encuestados respondentes tienen que brindar información sobre los que no respondieron. Al tener tasas de respuesta bajas, la variación de los ponderadores,
 tiene que reflejar esa situación. 
 \\
 
@@ -955,8 +948,7 @@ son similares entre sí, algo que no ocurría utilizando la estrategia de la par
 
 \subsection*{Parte c}
 
-Con el mismo modelo de la parte anterior vamos a ajustar la no respuesta médiante propensiones estratificadas, para ello vamos a 
-dividir las propensiones en sus quntiles y luego para cada grupo le asignaremos la propensión mediana. 
+Con el mismo modelo de la parte anterior se ajustarán las no respuesta mediante propensiones estratificadas. Para ello se dividirán las propensiones en sus quintiles y luego a cada grupo se le asigna la propensión mediana. 
 \\
 
 Primero realizaremos un histograma de estas propensiones : 
@@ -976,11 +968,11 @@ muestra %>%
     theme_bw()
 @
 
-Podemos ver una distribución simetrica, centrada en valores poco mas grandes que 
-$1/2$ aproximandose al valor de la tasa de respuesta. 
+Podemos ver una distribución simétrica, centrada en valores poco mas grandes que 
+$1/2$ aproximándose al valor de la tasa de respuesta. 
 \\
 
-A continuación calcularemos las propensiones estratificadas utilizndo los quintiles de la distribución
+A continuación calcularemos las propensiones estratificadas utilizando los quintiles de la distribución
 para agrupar y el estadístico utilizado para resumir el score será la mediana: 
 \newpage
 
