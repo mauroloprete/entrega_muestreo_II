@@ -1445,11 +1445,7 @@ kable_styling(
         "hold_position"
     )
 )
-@
 
-\subsection*{Usando boostrap Rao-Wu}
-
-<<>>=
 svyby(
   formula = ~ desocupado,
   by = ~ dpto,
@@ -1477,7 +1473,7 @@ mutate.(
 ) %>% 
 kbl(
   booktabs = TRUE,
-  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
+  caption = "Estimación de la tasa de desempleo usando método del último conglomerado por Departamento"
 ) %>% 
 kable_styling(
     latex_options = c(
@@ -1485,6 +1481,12 @@ kable_styling(
         "hold_position"
     )
 )
+
+@
+
+\subsection*{Usando boostrap Rao-Wu}
+
+<<>>=
 
 
 svyby(
@@ -1585,7 +1587,13 @@ kable_styling(
 
 @
 
+Tras realizar ambas estimaciones por ambos métodos, se ve claramente que las estimaciones puntuales coinciden en su totalidad.
 
+Por otra parte, cuando se analiza la variabilidad de las estimaciones haciendo uso del desvío estancar, puede verse como ambos métodos mantienen (en muy pocos conglomerados) diferencias mínimas, de una 0.001 como máximo.
+
+Lo que conlleva a deducír que el comportamiento de los métodos es muy similar.
+
+Lo mismo sucede con los intervalos de confianza, las diferencias son muy pequeñas (aunque sí se puede notar que las mismas son mayores que en SE y la estimación puntual).
 
 \newpage
 

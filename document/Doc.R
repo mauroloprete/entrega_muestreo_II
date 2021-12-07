@@ -1184,8 +1184,6 @@ kable_styling(
     )
 )
 
-
-## -----------------------------------------------------------------------------
 svyby(
   formula = ~ desocupado,
   by = ~ dpto,
@@ -1213,7 +1211,7 @@ mutate.(
 ) %>% 
 kbl(
   booktabs = TRUE,
-  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
+  caption = "Estimación de la tasa de desempleo usando método del último conglomerado por Departamento"
 ) %>% 
 kable_styling(
     latex_options = c(
@@ -1221,6 +1219,10 @@ kable_styling(
         "hold_position"
     )
 )
+
+
+
+## -----------------------------------------------------------------------------
 
 
 svyby(
