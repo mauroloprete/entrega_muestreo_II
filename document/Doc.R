@@ -42,14 +42,14 @@ assign(
 
 options(kableExtra.latex.load_packages = FALSE)
 
- knitr::write_bib(
-   .packages(),
-   here(
-     "document",
-     "biblio",
-     "bib.bib"
-   )
- )
+# knitr::write_bib(
+#   .packages(),
+#   here(
+#     "document",
+#     "biblio",
+#     "bib.bib"
+#   )
+# )
 
 
 
@@ -1025,7 +1025,7 @@ theme_bw()
 
 
 
-## -----------------------------------------------------------------------------
+## ----message=FALSE, warning=FALSE---------------------------------------------
 
 library(survey)
 
@@ -1185,42 +1185,32 @@ kable_styling(
 )
 
 
+
 ## -----------------------------------------------------------------------------
-svyby(
-  formula = ~ desocupado,
-  by = ~ dpto,
-  FUN = svyratio,
-  design = disenio_final_rep,
-  denominator = ~ activo,
-  vartype = c("ci","se","cv")
-) %>% 
-tibble() %>% 
-set_names(
-  c(
-    "Dpto",
-    "Est.",
-    "SE",
-    "Inter.Inf",
-    "Inter.Sup",
-    "CV"
-  )
-) %>% 
-mutate.(
-  across.(
-    -Dpto,
-    .fns = ~ round(.x,3)
-  )
-) %>% 
-kbl(
-  booktabs = TRUE,
-  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
-) %>% 
-kable_styling(
-    latex_options = c(
-        "striped",
-        "hold_position"
-    )
+
+svymean(
+  ~ pobreza,
+  disenio_final,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
 )
+
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final,
+  vartype = c("ci","se","cv")
+)
+
+svymean(
+  ~ ingreso,
+  disenio_final_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+
+## -----------------------------------------------------------------------------
 
 
 svyby(
@@ -1317,6 +1307,32 @@ kable_styling(
         "striped",
         "hold_position"
     )
+)
+
+
+
+## -----------------------------------------------------------------------------
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final_rep,
+  vartype = c("ci","se","cv")
+) 
+
+svymean(
+  ~ ingreso,
+  disenio_final_rep_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+
+
+svymean(
+  ~ pobreza,
+  disenio_final_rep,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
 )
 
 

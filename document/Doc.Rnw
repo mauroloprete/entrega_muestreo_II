@@ -112,14 +112,14 @@ assign(
 
 options(kableExtra.latex.load_packages = FALSE)
 
- knitr::write_bib(
-   .packages(),
-   here(
-     "document",
-     "biblio",
-     "bib.bib"
-   )
- )
+# knitr::write_bib(
+#   .packages(),
+#   here(
+#     "document",
+#     "biblio",
+#     "bib.bib"
+#   )
+# )
 
 
 
@@ -142,7 +142,7 @@ ingreso promedio.
 \\
 
 Dada la existencia de no respuesta en la muestra y el tratamiento
-realizado, estamos frente a \textbf{una postura deterministica de la no respuesta}. 
+realizado, estamos frente a \textbf{una postura determinística de la no respuesta}. 
 \\
 
 A continuación se muestra el código utilizado para realizar las diferentes estimaciones :
@@ -390,7 +390,7 @@ grupo se le aplicara el mismo ajuste $\Phi_{i}$.
 Los diferentes grupos de no respuesta se construirán con base en el departamento y estrato al que pertenecen, para aprovechar al máximo las variables consideradas en el marco.
 \\
 
-A exepción de Montevideo, Canelones y San José que presentan comportamientos disímiles entre algunos subsectores, a cada departamento se le imputara la tasa de respuesta de su mismo departamento. 
+A exepción de Montevideo, Canelones y San José que presentan comportamientos disímiles entre algunos subsectores, a cada departamento se le imputara su tasa de respuesta. 
 
 
 <<>>=
@@ -502,12 +502,14 @@ tr_estrato_dpto %>%
 
 La gráfica ilustra los diferentes comportamientos de la tasa de respuesta en los diferentes departamentos, aunque la mayor diferencia se nota
 en San José, con una tasa de respuesta mayor en el Litoral Sur respecto al de la zona metropolitana.
-\\
 
-En lo que refiere a Montevideo,puedese puede ver una relación creciente (no monótona debido al estrato medio alto) al estrato referido al 
+\newpage
+
+En lo que refiere a Montevideo,se puede ver una relación creciente (no monótona debido al estrato medio alto) al estrato referido al 
 contexto económico \footnote{Asumiendo que los estratos son los mismos que el de la ECH} para la tasa de respuesta, mientras que para
 Canelones no se notan grandes diferencias.
-\newpage
+\\
+
 
 Una vez hecho esto, se continuará con el ajuste por no respuesta para los ponderadores originales: 
 \\
@@ -773,7 +775,10 @@ kable_styling(
 @
 
 A lo que refiere a la sensibilidad del modelo podemos ver que es de $70 \%$, mientras que la especificidad es de
-un casi $62 \%$ y un error total de $31 \%$ . Se calculan las propensiones individuales y ajustamos los ponderadores
+un casi $62 \%$ y un error total de $31 \%$ . 
+\\
+
+Se calculan las propensiones individuales y ajustamos los ponderadores
 por no respuesta:
 \\
 
@@ -906,7 +911,7 @@ est_ponderados_nr_boost %>%
 @
 
 
-Una vez realizadas las estimaciones, se puede ver que las estimaciones difieren poco.
+Una vez realizadas las estimaciones, se puede ver que las mismas difieren poco.
 Se nota a su vez un leve aumento en los errores estándar y coeficientes de variación, sin embargo
 se puede notar un aumento en el efecto diseño, así como también en el efecto diseño de Kish.
 \\
@@ -915,7 +920,7 @@ Este último, si bien es mas alto que el anterior basándonos en la regla empír
 
 Por último, veremos un gráfico de dispersión de los ponderadores originales,
 respecto a los recién ajustados.
-\\
+
 
 <<echo = FALSE,fig.cap= "Gráfica de dispersión de ponderadores originales vs propensiones con Boosting">>=
 muestra %>%
@@ -938,17 +943,24 @@ muestra %>%
     theme_bw()
 @
 
+\newpage
+
 En este gráfico puede verse como se aumentaron los ponderadores, algunos de ellos de forma considerable. Si bien esto puede sonar alarmante los 
 encuestados respondentes tienen que brindar información sobre los que no respondieron. Al tener tasas de respuesta bajas, la variación de los ponderadores,
 tiene que reflejar esa situación. 
 \\
 
-Algo a considerar, es que la estimación de la población obtenida con este nuevo sistema de ponderadores ($3.415.329$) siendo la original de ($3.518.412$) 
-son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta estimación crecia a casí el doble $6.582.193$.
+Algo a considerar, es que la estimación de la población obtenida con este nuevo sistema de ponderadores es de $3.415.329$ siendo la original de $3.518.412$.
+
+\\
+
+La estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecia a casí el doble $6.582.193$.
+
+\newpage
 
 \subsection*{Parte c}
 
-Con el mismo modelo de la parte anterior se ajustarán las no respuesta mediante propensiones estratificadas. Para ello se dividirán las propensiones en sus quintiles y luego a cada grupo se le asigna la propensión mediana. 
+Con el mismo modelo de la parte anterior se ajustarán las tasas de no respuesta mediante propensiones estratificadas. 
 \\
 
 Primero realizaremos un histograma de estas propensiones : 
@@ -1114,6 +1126,8 @@ est_ponderados_nr_boost %>%
     )
 @
 
+En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estandar y el efecto diseño aumentarón levemente.
+
 \newpage
 
 \section*{Parte 3}
@@ -1252,7 +1266,7 @@ muestra %<>%
 @
 
 Si realizamos un diagrama de dispersión de los ponderadores calibrados y los obtenidos en el punto anterior,
-podemos ver su cambio. Si al utilizar trimming en el raking, los totales poblacionales de variables auxiliares no se cumplen de manera exacta para cada grupo, aunque sigue estimando sin error el total poblacional fijado con los ponderadores originales.
+podemos ver su cambio. Si bien al utilizar trimming en el raking los totales poblacionales de variables auxiliares no se cumplen de manera exacta para cada grupo, aunque sigue estimando sin error el total poblacional fijado con los ponderadores originales.
 
 <<echo = FALSE,message=FALSE,warning=FALSE,fig.cap= "Gráfico de dispersión de ponderadores por clases vs calibrados">>=
 muestra %>%
@@ -1281,9 +1295,9 @@ Antes de culminar esta etapa, podemos ver que el efecto diseño de Kish aumento 
 
 \section*{Parte 4}
 
-una vez realizado el ajuste por no respuesta y calibrando con las variables poblacionales podemos realizar las estimaciones referidas a la tasa de desempleo, la proporción de personas pobres y el ingreso promedio, para personas empleadas mayores a 25 años.
+Una vez realizado el ajuste por no respuesta y calibrando con las variables poblacionales podemos realizar las estimaciones referidas a la tasa de desempleo, la proporción de personas pobres y el ingreso promedio, para personas empleadas mayores a 25 años.
 
-<<>>=
+<<message=FALSE, warning=FALSE>>=
 
 library(survey)
 
@@ -1317,7 +1331,6 @@ disenio_final_rep <- survey::as.svrepdesign(
 
 
 \subsection*{Método del útlimo conglomerado}
-
 
 <<>>=
 svyby(
@@ -1445,48 +1458,40 @@ kable_styling(
         "hold_position"
     )
 )
+
 @
 
+<<>>=
+
+svymean(
+  ~ pobreza,
+  disenio_final,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final,
+  vartype = c("ci","se","cv")
+)
+
+svymean(
+  ~ ingreso,
+  disenio_final_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+@
+
+
 \newpage
+
 
 \subsection*{Usando boostrap Rao-Wu}
 
 <<>>=
-svyby(
-  formula = ~ desocupado,
-  by = ~ dpto,
-  FUN = svyratio,
-  design = disenio_final_rep,
-  denominator = ~ activo,
-  vartype = c("ci","se","cv")
-) %>% 
-tibble() %>% 
-set_names(
-  c(
-    "Dpto",
-    "Est.",
-    "SE",
-    "Inter.Inf",
-    "Inter.Sup",
-    "CV"
-  )
-) %>% 
-mutate.(
-  across.(
-    -Dpto,
-    .fns = ~ round(.x,3)
-  )
-) %>% 
-kbl(
-  booktabs = TRUE,
-  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
-) %>% 
-kable_styling(
-    latex_options = c(
-        "striped",
-        "hold_position"
-    )
-)
 
 
 svyby(
@@ -1587,6 +1592,43 @@ kable_styling(
 
 @
 
+
+<<>>=
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final_rep,
+  vartype = c("ci","se","cv")
+) 
+
+svymean(
+  ~ ingreso,
+  disenio_final_rep_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+
+
+svymean(
+  ~ pobreza,
+  disenio_final_rep,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+@
+
+Tras realizar ambas estimaciones por ambos métodos, se ve claramente que las estimaciones puntuales coinciden en su totalidad.
+\\
+
+Por otra parte, cuando se analiza la variabilidad de las estimaciones haciendo uso del desvío estándar, puede verse como ambos métodos mantienen (en muy pocos conglomerados) diferencias mínimas, de 0.001 como máximo.
+\\
+
+Lo que conlleva a deducír que el comportamiento de los métodos es muy similar.
+\\
+
+Lo mismo sucede con los intervalos de confianza, las diferencias son muy pequeñas (aunque sí se puede notar que las mismas son mayores que en SE y la estimación puntual).
 
 
 \newpage

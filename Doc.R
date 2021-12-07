@@ -283,7 +283,7 @@ muestra %<>%
 
 
 
-## ----echo = FALSE----------------------------------------------------------------------------------------------------------
+## ----echo = FALSE,fig.cap= "Tasa de respuesta ponderada por departamento y estrato"----------------------------------------
 tr_estrato_dpto %>%
     mutate.(
         dpto_label = case_when.(
@@ -707,7 +707,7 @@ est_ponderados_nr_boost %>%
     )
 
 
-## ----echo = FALSE----------------------------------------------------------------------------------------------------------
+## ----echo = FALSE,fig.cap= "Gráfica de dispersión de ponderadores originales vs propensiones con Boosting"-----------------
 muestra %>%
     filter.(
         R > 0
@@ -728,7 +728,7 @@ muestra %>%
     theme_bw()
 
 
-## ----echo = FALSE----------------------------------------------------------------------------------------------------------
+## ----echo = FALSE,fig.cap = "Histograma de propensiones del método Boosting"-----------------------------------------------
 muestra %>%
     ggplot(
         aes(
@@ -781,7 +781,7 @@ muestra %>%
     filter(
         R > 0
     ) %>%
-    summarize.(
+    summarize(
         td = survey_ratio(
             desocupado,
             activo,
@@ -1005,7 +1005,7 @@ muestra %<>%
 
 
 
-## ----echo = FALSE,message=FALSE,warning=FALSE------------------------------------------------------------------------------
+## ----echo = FALSE,message=FALSE,warning=FALSE,fig.cap= "Gráfico de dispersión de ponderadores por clases vs calibrados"----
 muestra %>%
   filter.(
     R > 0
@@ -1058,7 +1058,7 @@ disenio_final_rep <- survey::as.svrepdesign(
 
 
 ## --------------------------------------------------------------------------------------------------------------------------
-survey::svyby(
+svyby(
   formula = ~ desocupado,
   by = ~ dpto,
   FUN = svyratio,
@@ -1079,7 +1079,7 @@ set_names(
 ) %>% 
 mutate.(
   across.(
-    -Departamento,
+    -Dpto,
     .fns = ~ round(.x,3)
   )
 ) %>% 
@@ -1095,7 +1095,7 @@ kable_styling(
 )
 
 
-survey::svyby(
+svyby(
   formula = ~ pobreza,
   by = ~ dpto,
   FUN = svymean,
@@ -1116,7 +1116,7 @@ set_names(
 ) %>% 
 mutate.(
   across.(
-    -Departamento,
+    -Dpto,
     .fns = ~ round(.x,3)
   )
 ) %>% 
@@ -1148,7 +1148,7 @@ as_survey_design(
     envir = .GlobalEnv
   )
 
-survey::svyby(
+svyby(
   formula = ~ ingreso,
   by = ~ dpto,
   FUN = svymean,
@@ -1169,61 +1169,51 @@ set_names(
 ) %>% 
 mutate.(
   across.(
-    -Departamento,
+    -Dpto,
     .fns = ~ round(.x,3)
   )
 ) %>% 
 kbl(
   booktabs = TRUE,
-  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+  caption = "Estimación del ingreso promedio usando método del último conglomerado por Departamento"
 ) %>% 
 kable_styling(
     latex_options = c(
         "striped",
         "hold_position"
     )
+)
+
+
+
+## --------------------------------------------------------------------------------------------------------------------------
+
+svymean(
+  ~ pobreza,
+  disenio_final,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final,
+  vartype = c("ci","se","cv")
+)
+
+svymean(
+  ~ ingreso,
+  disenio_final_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
 )
 
 
 ## --------------------------------------------------------------------------------------------------------------------------
-survey::svyby(
-  formula = ~ desocupado,
-  by = ~ dpto,
-  FUN = svyratio,
-  design = disenio_final_rep,
-  denominator = ~ activo,
-  vartype = c("ci","se","cv")
-) %>% 
-tibble() %>% 
-set_names(
-  c(
-    "Dpto",
-    "Est.",
-    "SE",
-    "Inter.Inf",
-    "Inter.Sup",
-    "CV"
-  )
-) %>% 
-mutate.(
-  across.(
-    -Departamento,
-    .fns = ~ round(.x,3)
-  )
-) %>% 
-kbl(
-  booktabs = TRUE,
-  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
-) %>% 
-kable_styling(
-    latex_options = c(
-        "striped",
-        "hold_position"
-    )
-)
 
 
-survey::svyby(
+svyby(
   formula = ~ pobreza,
   by = ~ dpto,
   FUN = svymean,
@@ -1244,7 +1234,7 @@ set_names(
 ) %>% 
 mutate.(
   across.(
-    -Departamento,
+    -Dpto,
     .fns = ~ round(.x,3)
   )
 ) %>% 
@@ -1283,7 +1273,7 @@ disenio_final_rep_aux <- survey::as.svrepdesign(
 )
 
 
-survey::svyby(
+svyby(
   formula = ~ ingreso,
   by = ~ dpto,
   FUN = svymean,
@@ -1304,7 +1294,7 @@ set_names(
 ) %>% 
 mutate.(
   across.(
-    -Departamento,
+    -Dpto,
     .fns = ~ round(.x,3)
   )
 ) %>% 
@@ -1317,6 +1307,32 @@ kable_styling(
         "striped",
         "hold_position"
     )
+)
+
+
+
+## --------------------------------------------------------------------------------------------------------------------------
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final_rep,
+  vartype = c("ci","se","cv")
+) 
+
+svymean(
+  ~ ingreso,
+  disenio_final_rep_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+
+
+svymean(
+  ~ pobreza,
+  disenio_final_rep,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
 )
 
 
