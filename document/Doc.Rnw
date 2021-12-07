@@ -1022,7 +1022,7 @@ muestra %>%
     filter(
         R > 0
     ) %>%
-    summarize(
+    summarize.(
         td = survey_ratio(
             desocupado,
             activo,
@@ -1289,7 +1289,307 @@ Antes de culminar esta etapa, podemos ver que el efecto diseño de Kish aumento 
 
 \section*{Parte 4}
 
-una vez realizado el ajuste por no respuesta y calibrando con las variables poblacionales podemos realizar las estimaciones referida
+una vez realizado el ajuste por no respuesta y calibrando con las variables poblacionales podemos realizar las estimaciones referidas a la tasa de desempleo, la proporción de personas pobres y el ingreso promedio, para personas empleadas mayores a 25 años.
+
+<<>>=
+muestra %<>%
+  mutate.(
+    desocupado = replace_na.(
+      desocupado,
+      0
+    ),
+    activo = replace_na.(
+      activo,
+      0
+    )
+  )
+
+
+disenio_final <- as_survey_design(
+  muestra,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+)
+
+disenio_final_rep <- as.svrepdesign(
+  disenio_final,
+  type = "subbootstrap",
+  replicates = 500
+)
+
+@
+
+
+\subsection*{Método del útlimo conglomerado}
+
+
+<<>>=
+svyby(
+  formula = ~ desocupado,
+  by = ~ dpto,
+  FUN = svyratio,
+  design = disenio_final,
+  denominator = ~ activo,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Departamento",
+    "Estimación",
+    "Error estandar",
+    "Intervalo inferior",
+    "Invertavlo superior",
+    "Coeficiente de variación"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de desempleo usando el último conglomerado por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+svyby(
+  formula = ~ pobreza,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Departamento",
+    "Estimación",
+    "Error estandar",
+    "Intervalo inferior",
+    "Invertavlo superior",
+    "Coeficiente de variación"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de pobreza usando el último conglomerado por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+muestra %>% 
+  filter.(
+    edad >= 25,
+    ocupado == 1
+  ) %>% 
+as_survey_design(
+  .,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+) %>%
+  assign(
+    "disenio_final_aux",
+    .,
+    envir = .GlobalEnv
+  )
+
+svyby(
+  formula = ~ ingreso,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_aux,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Departamento",
+    "Estimación",
+    "Error estandar",
+    "Intervalo inferior",
+    "Invertavlo superior",
+    "Coeficiente de variación"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+@
+
+\subsection*{Usando boostrap Rao-Wu}
+
+<<>>=
+svyby(
+  formula = ~ desocupado,
+  by = ~ dpto,
+  FUN = svyratio,
+  design = disenio_final_rep,
+  denominator = ~ activo,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Departamento",
+    "Estimación",
+    "Error estandar",
+    "Intervalo inferior",
+    "Invertavlo superior",
+    "Coeficiente de variación"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+svyby(
+  formula = ~ pobreza,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_rep,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Departamento",
+    "Estimación",
+    "Error estandar",
+    "Intervalo inferior",
+    "Invertavlo superior",
+    "Coeficiente de variación"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de pobreza usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+muestra %>% 
+  filter.(
+    edad >= 25,
+    ocupado == 1
+  ) %>% 
+as_survey_design(
+  .,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+) %>%
+  assign(
+    "disenio_final_aux",
+    .,
+    envir = .GlobalEnv
+  )
+
+disenio_final_rep_aux <- as.svrepdesign(
+  disenio_final_aux,
+  type = "subbootstrap",
+  replicates = 500
+)
+
+
+svyby(
+  formula = ~ ingreso,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_rep_aux,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Departamento",
+    "Estimación",
+    "Error estandar",
+    "Intervalo inferior",
+    "Invertavlo superior",
+    "Coeficiente de variación"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Departamento,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+@
+
 
 
 \newpage
