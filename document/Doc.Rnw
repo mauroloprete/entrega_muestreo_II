@@ -1318,7 +1318,6 @@ disenio_final_rep <- survey::as.svrepdesign(
 
 \subsection*{Método del útlimo conglomerado}
 
-
 <<>>=
 svyby(
   formula = ~ desocupado,
@@ -1447,7 +1446,92 @@ kable_styling(
 )
 @
 
+<<>>=
+svymean(~ pobreza,
+        disenio_final,
+        vartype = c("ci","se","cv"),
+        na.rm = TRUE
+         )%>% 
+tibble() %>% 
+set_names(
+  c(
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>%
+  kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de pobreza usando último Conglomerado a nivel país"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+svyratio(~ desocupado, 
+         ~ activo,
+         disenio_final,
+         vartype = c("ci","se","cv")
+         )%>% 
+tibble() %>% 
+set_names(
+  c(
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>%
+  kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de desempleo usando último Conglomerado a nivel país"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+svymean(~ ingreso,
+        disenio_final_aux,
+        vartype = c("ci","se","cv"),
+        na.rm = TRUE
+         )%>% 
+tibble() %>% 
+set_names(
+  c(
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>%
+  kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando último Conglomerado a nivel país"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+@
+
+
+
+
 \subsection*{Usando boostrap Rao-Wu}
+
+
 
 <<>>=
 svyby(
@@ -1585,7 +1669,86 @@ kable_styling(
 
 @
 
+<<>>=
+svyratio(~ desocupado, 
+         ~ activo,
+         disenio_final_rep,
+         vartype = c("ci","se","cv")
+         )%>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>%
+  kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de desempleo usando Boostrap Rao-Wu a nivel país"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
 
+svymean(~ ingreso,
+        disenio_final_rep_aux,
+        vartype = c("ci","se","cv"),
+        na.rm = TRUE
+         )%>% 
+tibble() %>% 
+set_names(
+  c(
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>%
+  kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu a nivel país"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+svymean(~ pobreza,
+        disenio_final_rep,
+        vartype = c("ci","se","cv"),
+        na.rm = TRUE
+         )%>% 
+tibble() %>% 
+set_names(
+  c(
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>%
+  kbl(
+  booktabs = TRUE,
+  caption = "Estimación de la tasa de pobreza usando Boostrap Rao-Wu a nivel país"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+@
 
 \newpage
 
