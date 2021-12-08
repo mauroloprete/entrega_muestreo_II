@@ -37,7 +37,8 @@ pacman::p_load(
     xgboost,
     PracTools,
     xaringanExtra,
-    xaringanthemer
+    xaringanthemer,
+
 )
 
 # Configuración del tema Xaringan:
@@ -296,7 +297,7 @@ class: header_background
 .panelset[
 .panel[.panel-name[Creación de grupos]
 
-<h2> Definimos grupos de no respuesta en base a los estratos socioeconomicos
+<h2> Definimos grupos de no respuesta en base a los estratos socioeconómicos
 y por departamentos. A exepción de Montevideo, Canelones y San José
 que presentan comportamientos disímiles entre
 algunos estratos, a cada departamento se le imputara su tasa de respuesta <h2>
@@ -588,7 +589,7 @@ class: header_background
 .panel[.panel-name[Algoritmo]
 
 
-<h4> Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados.
+<h4> Este tipo de modelo es similar al Random Forest, generando diferentes árboles de decisión y promediando sus resultados.
 
 La diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
 paso se minimiza una función de pérdida (predicciones contra valores observados). 
@@ -947,7 +948,7 @@ Algo a considerar, es que la estimación de la población obtenida con este nuev
 
 
 
-La estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecia a casí el doble $6.582.193$.
+Las estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecía a casi el doble $6.582.193$.
 
 ]
 
@@ -1130,7 +1131,7 @@ est_ponderados_nr_clases %>%
     )
 ```
 
-<h4> En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estandar y el efecto diseño aumentarón levemente.<h4>
+<h4> En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estándar y el efecto diseño aumentaron levemente.<h4>
 
 ]
 
@@ -1157,7 +1158,7 @@ recortamos los mismos y aumentamos el tamaño de iteraciones por defecto. <h4>
 
 .center[
 
-<h3> Con los limites fijados los ponderadores pueden variar hasta un $30\%$ de su valor obtenido
+<h3> Con los límites fijados los ponderadores pueden variar hasta un $30\%$ de su valor obtenido
  con las propensiones estratificadas del boosting,es decir, al argumento bounds le 
  fijamos $-1.3$ y $1.3$ <h3>
 
@@ -1335,6 +1336,456 @@ theme_bw()
 
 ---
 
-class: title-slide,middle
+class: header_background
 
 # Estimación de varianzas
+
+.panelset[
+.panel[.panel-name[Método del útlimo conglomerado - país]
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+
+library(survey)
+
+muestra %<>%
+  mutate.(
+    desocupado = replace_na.(
+      desocupado,
+      0
+    ),
+    activo = replace_na.(
+      activo,
+      0
+    )
+  )
+
+
+disenio_final <- as_survey_design(
+  muestra,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+)
+
+disenio_final_rep <- survey::as.svrepdesign(
+  disenio_final,
+  type = "subbootstrap",
+  replicates = 500
+)
+
+svymean(
+  ~ pobreza,
+  disenio_final,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final,
+  vartype = c("ci","se","cv")
+)
+
+muestra %>% 
+  filter.(
+    edad >= 25,
+    ocupado == 1
+  ) %>% 
+as_survey_design(
+  .,
+  ids = id_hogar,
+  weight = w_nr_boost_clases_calibrados,
+  strata = estrato
+) %>%
+  assign(
+    "disenio_final_aux",
+    .,
+    envir = .GlobalEnv
+  )
+
+svymean(
+  ~ ingreso,
+  disenio_final_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+```
+
+]
+
+.panel[.panel-name[Último conglomerado - Departamento - Ingreso]
+
+.center[
+
+.scroll-box-20[
+
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+svyby(
+  formula = ~ ingreso,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_aux,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+)  %>% 
+kbl(
+  booktabs = TRUE
+  ) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+
+```
+]
+
+]
+
+]
+
+
+.panel[.panel-name[Último conglomerado - Departamento - Pobreza]
+
+.center[
+
+.scroll-box-20[
+
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+svyby(
+  formula = ~ pobreza,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+)  %>% 
+kbl(
+  booktabs = TRUE
+  ) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+```
+]
+
+]
+
+]
+
+
+.panel[.panel-name[Último conglomerado - Departamento - Desempleo]
+
+.center[
+
+.scroll-box-20[
+
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+svyby(
+  formula = ~ desocupado,
+  by = ~ dpto,
+  FUN = svyratio,
+  design = disenio_final,
+  denominator = ~ activo,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+)  %>% 
+kbl(
+  booktabs = TRUE
+  ) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+```
+]
+
+]
+
+]
+]
+---
+
+class: header_background
+
+# Estimación de varianzas
+
+.panelset[
+.panel[.panel-name[Método de Bootstrap Rao-Wu - País]
+
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+
+disenio_final_rep_aux <- survey::as.svrepdesign(
+  disenio_final_aux,
+  type = "subbootstrap",
+  replicates = 500
+)
+
+svyratio(
+  ~ desocupado, 
+  ~ activo,
+  disenio_final_rep,
+  vartype = c("ci","se","cv")
+) 
+
+svymean(
+  ~ ingreso,
+  disenio_final_rep_aux,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+
+
+svymean(
+  ~ pobreza,
+  disenio_final_rep,
+  vartype = c("ci","se","cv"),
+  na.rm = TRUE
+)
+
+```
+
+]
+
+.panel[.panel-name[Último conglomerado - Departamento - Ingreso]
+
+.center[
+
+.scroll-box-20[
+
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+svyby(
+  formula = ~ desocupado,
+  by = ~ dpto,
+  FUN = svyratio,
+  design = disenio_final_rep,
+  denominator = ~ activo,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE
+  ) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+
+```
+]
+
+]
+
+]
+
+
+.panel[.panel-name[Bootstrap Rao-Wu - País - Ingreso]
+
+.center[
+
+.scroll-box-20[
+
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+svyby(
+  formula = ~ ingreso,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_rep_aux,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+)  %>% 
+kbl(
+  booktabs = TRUE
+  ) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+
+```
+]
+
+]
+
+]
+
+
+
+.panel[.panel-name[Bootstrap Rao-Wu - País - Pobreza]
+
+.center[
+
+.scroll-box-20[
+
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+svyby(
+  formula = ~ pobreza,
+  by = ~ dpto,
+  FUN = svymean,
+  na.rm = TRUE,
+  design = disenio_final_rep,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+)  %>% 
+kbl(
+  booktabs = TRUE
+  ) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
+```
+]
+
+]
+
+]
+]
+
+---
+
+class: header_background
+
+# Conclusión 
+
+Tras realizar ambas estimaciones por ambos métodos, se ve claramente que las estimaciones puntuales coinciden en su totalidad.
+\\
+
+Por otra parte, cuando se analiza la variabilidad de las estimaciones haciendo uso del desvío estándar, puede verse como ambos métodos mantienen (en muy pocos conglomerados) diferencias mínimas, de 0.001 como máximo.
+\\
+
+Lo que conlleva a deducír que el comportamiento de los métodos es muy similar.
+\\
+
+Lo mismo sucede con los intervalos de confianza, las diferencias son muy pequeñas (aunque sí se puede notar que las mismas son mayores que en SE y la estimación puntual).

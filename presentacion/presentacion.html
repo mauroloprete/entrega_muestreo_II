@@ -203,7 +203,7 @@ class: header_background
 .panelset[
 .panel[.panel-name[Creación de grupos]
 
-&lt;h2&gt; Definimos grupos de no respuesta en base a los estratos socioeconomicos
+&lt;h2&gt; Definimos grupos de no respuesta en base a los estratos socioeconómicos
 y por departamentos. A exepción de Montevideo, Canelones y San José
 que presentan comportamientos disímiles entre
 algunos estratos, a cada departamento se le imputara su tasa de respuesta &lt;h2&gt;
@@ -358,7 +358,7 @@ class: header_background
 .panel[.panel-name[Algoritmo]
 
 
-&lt;h4&gt; Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados.
+&lt;h4&gt; Este tipo de modelo es similar al Random Forest, generando diferentes árboles de decisión y promediando sus resultados.
 
 La diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
 paso se minimiza una función de pérdida (predicciones contra valores observados). 
@@ -404,7 +404,7 @@ assign(
 ```
 
 ```
-## [13:53:00] WARNING: amalgamation/../src/learner.cc:1115: Starting in XGBoost 1.3.0, the default evaluation metric used with the objective 'binary:logistic' was changed from 'error' to 'logloss'. Explicitly set eval_metric if you'd like to restore the old behavior.
+## [17:50:41] WARNING: amalgamation/../src/learner.cc:1115: Starting in XGBoost 1.3.0, the default evaluation metric used with the objective 'binary:logistic' was changed from 'error' to 'logloss'. Explicitly set eval_metric if you'd like to restore the old behavior.
 ```
 
 
@@ -608,7 +608,7 @@ Algo a considerar, es que la estimación de la población obtenida con este nuev
 
 
 
-La estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecia a casí el doble `\(6.582.193\)`.
+Las estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecía a casi el doble `\(6.582.193\)`.
 
 ]
 
@@ -746,7 +746,7 @@ muestra %&gt;%
 &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h4&gt; En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estandar y el efecto diseño aumentarón levemente.&lt;h4&gt;
+&lt;h4&gt; En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estándar y el efecto diseño aumentaron levemente.&lt;h4&gt;
 
 ]
 
@@ -773,7 +773,7 @@ recortamos los mismos y aumentamos el tamaño de iteraciones por defecto. &lt;h4
 
 .center[
 
-&lt;h3&gt; Con los limites fijados los ponderadores pueden variar hasta un `\(30\%\)` de su valor obtenido
+&lt;h3&gt; Con los límites fijados los ponderadores pueden variar hasta un `\(30\%\)` de su valor obtenido
  con las propensiones estratificadas del boosting,es decir, al argumento bounds le 
  fijamos `\(-1.3\)` y `\(1.3\)` &lt;h3&gt;
 
@@ -936,9 +936,978 @@ muestra %&lt;&gt;%
 
 ---
 
-class: title-slide,middle
+class: header_background
 
 # Estimación de varianzas
+
+.panelset[
+.panel[.panel-name[Método del útlimo conglomerado - país]
+
+
+
+```
+##             mean     SE
+## pobreza 0.092709 0.0044
+```
+
+```
+## Ratio estimator: svyratio.survey.design2(~desocupado, ~activo, disenio_final, 
+##     vartype = c("ci", "se", "cv"))
+## Ratios=
+##                activo
+## desocupado 0.08548824
+## SEs=
+##                activo
+## desocupado 0.00375566
+```
+
+```
+##          mean     SE
+## ingreso 37661 485.62
+```
+
+]
+
+.panel[.panel-name[Último conglomerado - Departamento - Ingreso]
+
+.center[
+
+.scroll-box-20[
+
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Estimación del ingreso promedio usando método del último conglomerado por Departamento&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Dpto &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SE &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Inf &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Sup &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45048.45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 933.709 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 43218.41 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 46878.48 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.021 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29229.10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1796.948 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25707.15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32751.06 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.061 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36416.20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1173.340 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34116.50 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 38715.90 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.032 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27104.19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1596.957 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 23974.21 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30234.17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.059 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32463.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1226.895 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30058.97 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34868.31 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.038 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35559.32 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5077.885 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25606.85 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45511.79 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.143 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32762.61 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2241.106 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28370.12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 37155.10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.068 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33653.30 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1916.168 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29897.68 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 37408.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.057 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31133.03 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2408.254 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26412.94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35853.12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.077 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32916.07 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1677.659 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29627.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36204.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.051 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31034.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1822.738 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27462.42 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34607.42 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.059 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33695.73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2693.451 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28416.66 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 38974.79 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.080 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 23339.26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1291.590 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20807.78 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25870.72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.055 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31186.69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2038.975 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27190.37 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35183.00 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.065 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28152.51 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2030.995 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24171.83 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32133.19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.072 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31017.27 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1095.901 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28869.35 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33165.20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.035 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36663.34 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2872.247 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31033.84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 42292.84 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.078 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24517.75 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1202.479 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22160.94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26874.57 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.049 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26972.37 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2758.660 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21565.49 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32379.24 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.102 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+]
+
+]
+
+
+.panel[.panel-name[Último conglomerado - País - Pobreza]
+
+.center[
+
+.scroll-box-20[
+
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Estimación de la tasa de pobreza usando el último conglomerado por Departamento&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Dpto &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SE &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Inf &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Sup &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.135 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.008 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.118 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.151 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.062 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.132 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.032 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.069 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.196 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.244 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.057 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.010 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.038 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.076 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.170 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.086 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.024 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.039 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.133 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.277 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.010 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.002 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.041 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.453 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.105 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.034 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.039 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.171 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.321 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NaN &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.046 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.021 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.005 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.087 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.459 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.066 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.031 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.005 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.126 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.469 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.017 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.009 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.034 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.527 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.076 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.032 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.119 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.293 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.026 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.016 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.005 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.058 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.617 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.183 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.029 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.126 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.241 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.160 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.051 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.018 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.015 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.087 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.356 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.081 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.038 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.125 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.274 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.011 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.044 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.509 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.046 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.020 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.007 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.085 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.433 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.113 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.029 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.056 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.169 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.257 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.164 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.043 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.081 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.248 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.259 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+]
+
+]
+
+
+.panel[.panel-name[Último conglomerado - País - Desempleo]
+
+.center[
+
+.scroll-box-20[
+
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Estimación de la tasa de desempleo usando el último conglomerado por Departamento&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Dpto &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SE &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Inf &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Sup &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.082 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.006 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.070 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.093 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.071 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.108 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.028 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.054 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.163 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.255 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.088 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.010 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.069 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.107 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.111 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.029 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.013 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.054 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.446 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.061 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.015 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.031 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.091 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.250 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.175 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.030 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.116 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.235 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.173 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.038 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.021 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.080 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.560 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.065 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.023 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.020 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.109 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.352 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.086 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.025 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.037 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.135 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.290 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.084 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.019 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.046 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.122 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.231 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.128 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.029 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.071 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.184 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.225 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.060 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.020 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.020 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.099 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.338 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.113 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.023 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.069 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.158 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.201 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.085 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.041 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.128 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.263 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.126 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.083 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.168 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.172 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.043 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.019 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.068 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.286 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.117 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.026 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.066 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.167 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.222 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.087 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.024 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.040 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.133 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.272 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.051 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.025 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.100 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.502 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+]
+
+]
+]
+---
+
+class: header_background
+
+# Estimación de varianzas
+
+.panelset[
+.panel[.panel-name[Método de Bootstrap Rao-Wu - País]
+
+
+
+```
+## Ratio estimator: svyratio.svyrep.design(~desocupado, ~activo, disenio_final_rep, 
+##     vartype = c("ci", "se", "cv"))
+## Ratios=
+##                activo
+## desocupado 0.08548824
+## SEs=
+##             [,1]
+## [1,] 0.003567402
+```
+
+```
+##          mean  SE
+## ingreso 37661 498
+```
+
+```
+##             mean     SE
+## pobreza 0.092709 0.0044
+```
+
+]
+
+.panel[.panel-name[Bootstrap Rao-Wu - País - Ingreso]
+
+.center[
+
+.scroll-box-20[
+
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Dpto &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SE &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Inf &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Sup &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45048.45 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 970.951 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 43145.42 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 46951.48 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29229.10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1722.763 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25852.55 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32605.66 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.059 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36416.20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1128.454 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34204.47 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 38627.93 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.031 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27104.19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1638.698 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 23892.40 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30315.98 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.060 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32463.64 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1206.107 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30099.72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34827.57 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.037 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35559.32 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 5094.431 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 25574.42 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 45544.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.143 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32762.61 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2290.690 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28272.94 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 37252.28 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.070 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33653.30 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1953.776 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29823.97 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 37482.63 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.058 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31133.03 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2390.619 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26447.50 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35818.56 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.077 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32916.07 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1683.382 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 29616.70 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36215.44 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.051 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31034.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1846.664 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27415.52 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 34654.31 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.060 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33695.73 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2912.710 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27986.92 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 39404.53 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.086 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 23339.26 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1374.709 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 20644.88 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26033.63 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.059 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31186.69 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2053.667 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 27161.57 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 35211.80 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.066 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28152.51 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2106.843 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24023.17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32281.85 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.075 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 31017.27 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1070.354 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 28919.42 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 33115.13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.035 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 36663.34 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2916.065 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 30947.96 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 42378.72 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.080 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 24517.75 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1193.673 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22178.20 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26857.31 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.049 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 26972.37 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2816.456 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21452.22 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 32492.52 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.104 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+]
+
+]
+
+
+
+.panel[.panel-name[Bootstrap Rao-Wu - País - Pobreza]
+
+.center[
+
+.scroll-box-20[
+
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+&lt;caption&gt;Estimación de la tasa de pobreza usando Boostrap Rao-Wu por Departamento&lt;/caption&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Dpto &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Est. &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; SE &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Inf &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Inter.Sup &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.135 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.009 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.118 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.151 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.063 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 2 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.132 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.032 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.071 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.194 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.238 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 3 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.057 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.010 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.038 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.076 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.174 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 4 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.086 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.025 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.038 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.134 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.287 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 5 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.009 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.003 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.040 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.435 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 6 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.105 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.034 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.039 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.171 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.321 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 7 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; NaN &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 8 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.046 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.088 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.470 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 9 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.066 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.032 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.128 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.482 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 10 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.017 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.009 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.001 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.035 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.554 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 11 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.076 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.021 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.034 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.118 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.283 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 12 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.026 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.016 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; -0.005 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.058 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.616 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 13 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.183 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.029 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.127 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.240 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.157 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 14 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.051 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.018 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.016 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.086 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.347 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 15 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.081 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.024 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.035 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.128 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.292 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 16 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.022 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.011 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.000 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.043 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.503 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 17 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.046 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.019 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.009 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.083 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.408 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 18 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.113 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.029 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.056 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.170 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.258 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 19 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.164 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.040 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.086 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.243 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.245 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+]
+
+]
+]
+
+
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
