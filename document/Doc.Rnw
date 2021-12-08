@@ -1590,6 +1590,45 @@ kable_styling(
     )
 )
 
+
+
+svyby(
+  formula = ~ desocupado,
+  by = ~ dpto,
+  FUN = svyratio,
+  design = disenio_final_rep,
+  denominator = ~ activo,
+  vartype = c("ci","se","cv")
+) %>% 
+tibble() %>% 
+set_names(
+  c(
+    "Dpto",
+    "Est.",
+    "SE",
+    "Inter.Inf",
+    "Inter.Sup",
+    "CV"
+  )
+) %>% 
+mutate.(
+  across.(
+    -Dpto,
+    .fns = ~ round(.x,3)
+  )
+) %>% 
+kbl(
+  booktabs = TRUE,
+  caption = "Estimación del ingreso promedio usando Boostrap Rao-Wu por Departamento"
+) %>% 
+kable_styling(
+    latex_options = c(
+        "striped",
+        "hold_position"
+    )
+)
+
+
 @
 
 
