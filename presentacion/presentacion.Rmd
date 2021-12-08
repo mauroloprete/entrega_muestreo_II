@@ -58,7 +58,7 @@ style_duo_accent(
 
 
 xaringanExtra::use_panelset()
-
+xaringanExtra::use_tile_view()
 
 here(
     "data",
@@ -147,7 +147,7 @@ tasaRespuesta %>%
         )
     )
 ```
-### Baja tasa de no respuesta !
+### Alta tasa de no respuesta !
 ]
 
 ]
