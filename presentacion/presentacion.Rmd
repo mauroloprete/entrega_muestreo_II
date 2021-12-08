@@ -1332,3 +1332,9 @@ theme_bw()
 ]
 
 ]
+
+---
+
+class: title-slide,middle
+
+# Estimación de varianzas
