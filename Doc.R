@@ -42,14 +42,14 @@ assign(
 
 options(kableExtra.latex.load_packages = FALSE)
 
- knitr::write_bib(
-   .packages(),
-   here(
-     "document",
-     "biblio",
-     "bib.bib"
-   )
- )
+# knitr::write_bib(
+#   .packages(),
+#   here(
+#     "document",
+#     "biblio",
+#     "bib.bib"
+#   )
+# )
 
 
 
@@ -1025,7 +1025,7 @@ theme_bw()
 
 
 
-## --------------------------------------------------------------------------------------------------------------------------
+## ----message=FALSE, warning=FALSE------------------------------------------------------------------------------------------
 
 library(survey)
 
