@@ -1,0 +1,1334 @@
+---
+title : Calibración, ajuste por no respuesta y estimación de varianzas
+subtitle : Trabajo final Muestreo II
+author : Ignacio Acosta, Valentina Caldiroli , Mauro Loprete
+date : 8 de Diciembre
+output :
+  xaringan::moon_reader:
+   css : ["xaringan-themer.css","sydney.css"]
+   lib_dir : libs
+   includes:
+    after_body: insert-logo.html
+   nature :
+     ratio : "16:9"
+     highlightStyle: github
+     slideNumberFormat: '%current%'
+     highlightLines: true
+     countIncrementalSlides: false
+---
+
+```{r setup, include=F , warning = F }
+
+options(htmltools.dir.version = FALSE)
+if(!require(pacman)) {install.packages("pacman")}
+
+pacman::p_load(
+    here,
+    dplyr,
+    srvyr,
+    readxl,
+    dplyr,
+    forcats,
+    tidytable,
+    kableExtra,
+    magrittr,
+    ggplot2,
+    tidymodels,
+    xgboost,
+    PracTools,
+    xaringanExtra,
+    xaringanthemer
+)
+
+# Configuración del tema Xaringan:
+
+style_duo_accent(
+   primary_color = "#A200FF",
+   secondary_color = "#F3029B",
+   header_font_google = google_font("Titillium Web", "600"),
+   text_font_google   = google_font("Crimson Pro", "300", "300i"),
+   code_font_google   = google_font("IBM Plex Mono"),
+   base_font_size = "18px",
+   text_font_size = "1rem",
+   footnote_font_size = "0.6em",
+   header_h1_font_size = "1.8rem",
+   header_h2_font_size = "1.50rem",
+   header_h3_font_size = "1.4rem",
+)
+
+
+xaringanExtra::use_panelset()
+
+
+here(
+    "data",
+    "muestra grupo 4.xlsx"
+) %>%
+read_excel(
+    .
+) %>%
+mutate.(
+    edad_tramo = cut(
+        edad,
+        breaks = c(0,14,20,25,30,40,50,60,Inf),
+        right=FALSE
+    )
+) %>%
+assign(
+    "muestra",
+    .,
+    envir = .GlobalEnv
+)
+
+```
+
+class: header_background
+# Diagrama
+
+### - Análisis de la tasa de Respuesta
+  #### - Enfoque determinístico
+  #### - Enfoque estocástico
+
+### - Calibración
+
+### - Estimación de varianzas
+
+---
+
+class: title-slide,middle
+
+# No respuesta
+
+---
+
+class: header_background
+
+# Tasa de respuesta en la muestra 
+
+.panelset[
+.panel[.panel-name[Código]
+
+```{r}
+muestra %>%
+    summarize.(
+        tr = mean(R)
+    ) %>%
+    mutate.(
+        tnr = 1 - tr
+    ) %>%
+    assign(
+        "tasaRespuesta",
+        .,
+        envir = .GlobalEnv
+    )
+```
+]
+.panel[.panel-name[Resultado]
+```{r,echo = FALSE}
+tasaRespuesta %>%
+    set_names(
+        c(
+            "Tasa de Respuesta",
+            "Tasa de No Respuesta"
+        )
+    ) %>%
+    mutate.(
+        across.(
+            .fns = ~ round(.x,2)
+        )
+    ) %>%
+    kbl(
+        booktabs = T
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+```
+### Baja tasa de no respuesta !
+]
+
+]
+
+---
+
+class: inverse,middle
+
+# Enfoque determinístico
+
+---
+
+class: header_background
+
+# Estimaciones 
+
+.panelset[
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+```{r}
+muestra %>%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w0,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        )
+    ) %>%
+    assign(
+      "est_originales",
+      .,
+      envir = .GlobalEnv
+    )
+```
+]
+]
+.panel[.panel-name[Resultado]
+```{r,echo = FALSE}
+est_originales %>%
+    pivot_longer.(
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff"
+      )
+    ) %>%
+    kbl(
+        booktabs = T
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+```
+]
+
+]
+
+---
+class: inverse,middle
+
+# Enfoque estocástico
+
+## Patrón del tipo MAR
+
+---
+
+class: header_background
+
+# Grupos de no respuesta
+.panelset[
+.panel[.panel-name[Creación de grupos]
+
+<h2> Definimos grupos de no respuesta en base a los estratos socioeconomicos
+y por departamentos. A exepción de Montevideo, Canelones y San José
+que presentan comportamientos disímiles entre
+algunos estratos, a cada departamento se le imputara su tasa de respuesta <h2>
+
+
+]
+
+.panel[.panel-name[Diferencia de comportamiento]
+
+.center[
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+muestra %>%
+    summarize.(
+        tr_w_estrato_dpto = weighted.mean(
+            R
+        ),
+        .by = c(
+            "estrato",
+            "dpto"
+        )
+    ) %>%
+    assign(
+        "tr_estrato_dpto",
+        .,
+        envir = .GlobalEnv
+    )
+
+muestra %<>%
+    left_join.(
+        tr_estrato_dpto,
+        by = c(
+            "estrato" = "estrato",
+            "dpto" = "dpto"
+        )
+    ) %>%
+    mutate.(
+        w_nr_post = w0 / tr_w_estrato_dpto
+    )
+
+
+tr_estrato_dpto %>%
+    mutate.(
+        dpto_label = case_when.(
+            dpto == 1 ~ "Montevideo",
+            dpto == 3 ~ "Canelones",
+            dpto == 16 ~ "San José"
+        )
+    ) %>%
+    mutate.(
+      estrato_label = case_when.(
+          estrato == 1 ~ "Montevideo Bajo",
+          estrato == 2 ~ "Montevideo Medio Bajo",
+          estrato == 3 ~ "Montevideo medio",
+          estrato == 4 ~ "Montevideo medio alto",
+          estrato == 5 ~ "Montevideo Alto",
+          estrato == 6 ~ "Zona metropolitana",
+          estrato == 7 ~ "Interior norte",
+          estrato == 8 ~ "Costa Este",
+          estrato == 9 ~ "Litoral Norte",
+          estrato == 10 ~ "Litoral sur",
+          estrato == 11 ~ "Centro Norte",
+          estrato == 12 ~ "Centro sur"
+      )
+    ) %>%
+    filter.(
+        dpto %in% c(
+            1,
+            3,
+            16
+        )
+    ) %>%
+    ggplot(
+        aes(
+            x = as.factor(estrato),
+            y = tr_w_estrato_dpto,
+            color = estrato_label
+        )
+    ) + 
+    geom_segment(
+        aes(
+            xend = as.factor(estrato),
+            y = 0,
+            yend = tr_w_estrato_dpto
+        ),
+        size = 0.9
+    ) + 
+    geom_point() + 
+    scale_y_continuous(
+        labels = scales::percent,
+        limits = c(0, NA)
+    ) + 
+    facet_wrap(
+        vars(
+            dpto_label
+        ),
+        scales = "free_x"
+    ) + 
+    labs(
+        x = "",
+        y = "Tasa de respuesta ponderada",
+        color = "Estrato"
+    ) + 
+    theme_bw() + 
+    theme(
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom"
+    ) + 
+    scale_colour_viridis_d(
+        option = "D"
+    )
+
+
+```
+]
+]
+
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+```{r}
+muestra %>%
+    summarize.(
+        tr_w_estrato_dpto = weighted.mean(
+            R
+        ),
+        .by = c(
+            "estrato",
+            "dpto"
+        )
+    ) %>%
+    assign(
+        "tr_estrato_dpto",
+        .,
+        envir = .GlobalEnv
+    )
+
+muestra %<>%
+    left_join.(
+        tr_estrato_dpto,
+        by = c(
+            "estrato" = "estrato",
+            "dpto" = "dpto"
+        )
+    ) %>%
+    mutate.(
+        w_nr_post = w0 / tr_w_estrato_dpto
+    )
+
+muestra %>%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_post,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_post,
+          type = "kish"
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr",
+      .,
+      envir = .GlobalEnv
+    )
+
+
+```
+
+
+
+]
+]
+
+.panel[.panel-name[Estimación]
+
+```{r,echo = FALSE}
+
+est_ponderados_nr %>%
+    pivot_longer.(
+        - deffK,
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff,
+      deffK
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff",
+        "Efecto diseño de Kish"
+      )
+    ) %>%
+    kbl(
+        booktabs = T
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+
+```
+
+
+
+]
+
+]
+
+---
+
+class: header_background
+
+# Usando Boosting
+
+.panelset[
+.panel[.panel-name[Algoritmo]
+
+
+<h4> Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados.
+
+La diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
+paso se minimiza una función de pérdida (predicciones contra valores observados). 
+
+Este tipo de modelos supera a los del tipo de RF, ya que cada nuevo árbol de clasificación se genera tomando en cuenta 
+los errores del paso anterior y no simplemente por azar.
+<h4>
+]
+
+.panel[.panel-name[Covariables]
+
+.center[
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+muestra %>%
+    summarize.(
+        tr_w = mean(R),
+        .by = c(
+            "edad",
+            "sexo"
+        )
+    ) %>%
+    mutate.(
+        sexo = case_when.(
+            sexo == 1 ~ "Masculino",
+            TRUE ~ "Femenino"
+        )
+    ) %>%
+    ggplot(
+        aes(
+            x = edad,
+            y = tr_w 
+        )
+    ) + 
+    geom_point(
+        aes(
+            color = sexo
+        ),
+        size = 2
+    ) +
+    labs(
+        x = "Edad",
+        y = "Tasa de respuesta ponderada",
+        color = "Sexo"
+    ) + 
+    theme_bw() + 
+    theme(
+        legend.position = "bottom"
+    ) + 
+    scale_colour_viridis_d()
+```
+
+]
+
+]
+
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+```{r,message = FALSE, warning = FALSE}
+
+boost_tree(
+    trees = 300
+) %>%
+set_engine(
+    "xgboost"
+) %>%
+set_mode(
+    "classification"
+) %>%
+fit(
+    as.factor(R) ~ estrato + sexo + edad + dpto, data = muestra
+) %>%
+assign(
+    "modelo_boost",
+    .,
+    envir = .GlobalEnv
+)
+
+```
+
+
+
+]
+
+]
+
+.panel[.panel-name[Métricas]
+
+```{r,echo = FALSE,message = FALSE, warning = FALSE}
+tibble(
+    predict(
+        modelo_boost,
+        muestra, 
+        type = "prob"
+    ),
+    predict(
+        modelo_boost,
+        muestra
+    )
+) %>%
+rename.(
+    pred_boost = .pred_1
+) %>%
+assign(
+    "pred_boost",
+    .,
+    envir = .GlobalEnv
+)
+
+nombres <- c(1,2)
+
+names(nombres) <- c("Predicción","Observados")
+
+
+conf_mat(
+  data = bind_cols(
+    select(muestra, R),
+    select(pred_boost,.pred_class)
+  ),
+  truth = R, 
+  estimate = .pred_class
+) %$%
+table %>%
+kbl(
+    booktabs = TRUE
+) %>%
+add_header_above(
+    nombres
+) %>%
+kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+
+```
+
+.center[
+
+<h4> A lo que refiere a la sensibilidad del modelo podemos ver que es de $70 \%$, mientras que la especificidad es de
+un casi $62 \%$ y un error total de $31 \%$ . <h4>
+
+]
+
+]
+
+]
+
+---
+
+class: header_background
+
+
+# Propensiones simples
+
+.panelset[
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+```{r}
+tibble(
+    predict(
+        modelo_boost,
+        muestra, 
+        type = "prob"
+    ),
+    predict(
+        modelo_boost,
+        muestra
+    )
+) %>%
+rename.(
+    pred_boost = .pred_1
+) %>%
+assign(
+    "pred_boost",
+    .,
+    envir = .GlobalEnv
+)
+
+
+muestra %<>%
+    bind_cols.(
+        pred_boost
+    ) %>%
+    mutate.(
+        w_nr_boost = (w0*R)/(pred_boost)
+    )
+
+
+muestra %>%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_boost,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño_boost",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost,
+          type = "kish"
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr_boost",
+      .,
+      envir = .GlobalEnv
+    )
+
+```
+]
+]
+.panel[.panel-name[Resultado]
+```{r,echo = FALSE}
+est_ponderados_nr_boost %>%
+    pivot_longer.(
+        - deffK,
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff,
+      deffK
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff",
+        "Efecto diseño de Kish"
+      )
+    ) %>%
+    kbl(
+        booktabs = T
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+```
+]
+
+.panel[.panel-name[Originales vs Ajustados]
+
+.center[
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+
+muestra %>%
+    filter.(
+        R > 0
+    ) %>%
+    ggplot(
+        aes(
+            x = w0,
+            y = w_nr_boost
+        )
+    ) + 
+    geom_point(
+        size = 2
+    ) +
+    labs(
+        x = "Ponderadores originales",
+        y = "Ponderadores NR con boosting"
+    ) + 
+    theme_bw()
+```
+]
+
+
+]
+
+.panel[.panel-name[Resumen]
+
+.center[
+
+Una vez realizadas las estimaciones, se puede ver que las mismas difieren poco.
+Se nota a su vez un leve aumento en los errores estándar y coeficientes de variación, sin embargo
+se puede notar un aumento en el efecto diseño, así como también en el efecto diseño de Kish.
+
+En base al gráfico puede verse como aumentaron los ponderadores, algunos de ellos de forma considerable. Si bien esto puede sonar alarmante los 
+encuestados respondentes tienen que brindar información sobre los que no respondieron. Al tener tasas de respuesta bajas, la variación de los ponderadores,
+tiene que reflejar esa situación. 
+
+
+Algo a considerar, es que la estimación de la población obtenida con este nuevo sistema de ponderadores es de $3.415.329$ siendo la original de $3.518.412$.
+
+
+
+La estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecia a casí el doble $6.582.193$.
+
+]
+
+]
+]
+
+
+---
+
+class: header_background
+
+
+# Propensiones estratificadas
+
+.panelset[
+
+.panel[.panel-name[Histograma propensiones]
+
+.center[
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+
+muestra %>%
+    ggplot(
+        aes(
+            x = pred_boost
+        )
+    ) + 
+    geom_histogram(
+        bins = nrow(muestra) ^ 0.5,
+        fill = "blue",
+        alpha = 0.6
+    ) + 
+    theme_bw()
+```
+]
+
+
+]
+
+
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+```{r}
+muestra %<>%
+    mutate.(
+        boost_class = cut(
+            pred_boost,
+            breaks = quantile(
+                pred_boost,
+                probs = seq(0,1,1/5)
+            ),
+            include.lowest = TRUE
+        )
+    ) %>%
+    mutate.(
+        ajuste_boost_clases = 1/median(pred_boost),
+        .by = boost_class
+    ) %>%
+    mutate.(
+        w_nr_boost_clases = R * w0 * ajuste_boost_clases
+    )
+
+
+muestra %>%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_boost_clases,
+        strata = estrato
+    ) %T>%
+    assign(
+        "diseño_nr_boost_clases",
+        .,
+        envir = .GlobalEnv
+    ) %>%
+    filter(
+        R > 0
+    ) %>%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost_clases,
+          type = "kish"
+        )
+    ) %>%
+    assign(
+      "est_ponderados_nr_clases",
+      .,
+      envir = .GlobalEnv
+    )
+
+```
+]
+]
+.panel[.panel-name[Resultado]
+```{r,echo = FALSE}
+est_ponderados_nr_clases %>%
+    pivot_longer.(
+        - deffK,
+        names_to = "v",
+        values_to = "value"
+    ) %>%
+    mutate.(
+        tipo = stringr::str_extract(
+            v,
+            "[a-z]*$"
+        ),
+        variable = stringr::str_extract(
+            v,
+            "^[a-z]*"
+        ),
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        tipo = fct_collapse(
+            tipo,
+            "estimacion" = c(
+                "td",
+                "yprom",
+                "pobre"
+            )
+        )
+    ) %>%
+    mutate.(
+        across.(
+            where(is.numeric),
+            ~ round(
+                .x,
+                3
+            )
+        )
+    ) %>%
+    pivot_wider.(
+        names_from = "tipo",
+        values_from = "value"
+    ) %>%
+    relocate.(
+      variable,
+      estimacion,
+      se,
+      cv,
+      deff,
+      deffK
+    ) %>%
+    set_names(
+      c(
+        "Variable",
+        "Estimación puntual",
+        "Error estandar",
+        "CV",
+        "deff",
+        "Efecto diseño de Kish"
+      )
+    ) %>%
+    kbl(
+        booktabs = T
+    ) %>%
+    kable_styling(
+        latex_options = c(
+            "striped",
+            "hold_position"
+        )
+    )
+```
+
+<h4> En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estandar y el efecto diseño aumentarón levemente.<h4>
+
+]
+
+]
+
+---
+
+class: title-slide,middle
+
+# Calibración
+
+---
+
+class: header_background
+
+# Método Raking
+
+.panelset[
+
+.panel[.panel-name[Resumen]
+
+<h4> Construimos los nuevos ponderadores calibrados usando el método de Raking o post-estratificación incompleta, 
+recortamos los mismos y aumentamos el tamaño de iteraciones por defecto. <h4>
+
+.center[
+
+<h3> Con los limites fijados los ponderadores pueden variar hasta un $30\%$ de su valor obtenido
+ con las propensiones estratificadas del boosting,es decir, al argumento bounds le 
+ fijamos $-1.3$ y $1.3$ <h3>
+
+]
+
+<h2> El efecto de Kish fue de 1.166. <h2>
+
+
+]
+
+
+.panel[.panel-name[Preparación variables auxiliares]
+.scroll-box-20[
+
+```{r}
+read_excel(
+    here(
+        "data",
+        "dpto.xlsx"
+    )
+) %>%
+rename.(
+    personas_dpto = personas 
+) %>%
+pull.(
+    "personas_dpto"
+) %>%
+unique() %>%
+assign(
+    "total_dpto",
+    .,
+    envir = .GlobalEnv
+)
+
+edad_sexo <- read_excel(
+    here(
+        "data",
+        "sexo_edad.xlsx"
+    )
+)
+
+edad_sexo  %>%
+    mutate.(
+        total = hombres + mujeres,
+        .keep = "unused"
+    ) %>%
+    mutate.(
+        edad_tramo = cut(
+            edad,
+            breaks = c(0,14,20,25,30,40,50,60,Inf),
+            right=FALSE
+        )
+    ) %>%
+    summarize.(
+        total = sum(total),
+        .by = "edad_tramo"
+    ) %>% 
+    rename.(
+        total_edad = total
+    ) %>%
+    pull.(
+        "total_edad"
+    ) %>%
+    unique() %>%
+    assign(
+        "total_edad",
+        .,
+        envir = .GlobalEnv
+    )
+
+edad_sexo  %>%
+    summarize.(
+        hombres = sum(hombres),
+        mujeres = sum(mujeres)
+    ) %>%
+    pivot_longer.(
+        names_to = "sexo",
+        values_to = "valor"
+    ) %>%
+    rename.(
+        total_sexo = valor
+    ) %>%
+    mutate.(
+        sexo = ifelse.(
+            sexo == "hombres",
+            1,
+            2
+        )
+    ) %>%
+    pull.(
+        "total_sexo"
+    ) %>%
+    unique() %>%
+    assign(
+        "total_sexo",
+         .,
+        envir = .GlobalEnv
+    )
+
+
+
+conteos <- c(
+    sum(muestra$w0),
+    total_dpto[-1],
+    total_edad[-1],
+    total_sexo[-1]
+)
+```
+]
+]
+
+.panel[.panel-name[Método Raking]
+
+.scroll-box-20[
+
+```{r}
+survey::calibrate(
+    design = diseño_nr_boost_clases,
+    formula = ~ as.factor(dpto) + edad_tramo + as.factor(sexo),
+    population = conteos,
+    calfun = "raking",
+    bounds = c(
+      -1.3,
+      1.3
+    ),
+    maxit = 100,
+    bounds.const = FALSE
+) %>%
+assign(
+    "w_nr_calibrados",
+    .,
+    envir = .GlobalEnv
+)
+
+muestra %<>%
+    mutate.(
+        w_nr_boost_clases_calibrados = weights(
+            w_nr_calibrados
+        )
+    )
+```
+]
+
+
+]
+
+.panel[.panel-name[Diagrama de dispersión]
+
+.center[
+
+```{r,warning = F,message = F,echo = F,fig.pos = "H",out.width = "40%",dpi = 170,fig.retina = 2}
+muestra %>%
+  filter.(
+    R > 0
+  ) %>%
+ggplot(
+    aes(
+        x = w_nr_boost_clases,
+        y = w_nr_boost_clases_calibrados
+    )
+) + 
+geom_point() + 
+geom_smooth() +
+theme(
+  aspect.ratio = 1
+) + 
+theme_bw()
+```
+
+]
+
+]
+
+]

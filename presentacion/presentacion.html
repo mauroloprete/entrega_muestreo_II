@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Calibración, ajuste por no respuesta y estimación de varianzas</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Ignacio Acosta, Valentina Caldiroli , Mauro Loprete" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <script src="libs/kePrint/kePrint.js"></script>
+    <link href="libs/lightable/lightable.css" rel="stylesheet" />
+    <link rel="stylesheet" href="xaringan-themer.css" type="text/css" />
+    <link rel="stylesheet" href="sydney.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Calibración, ajuste por no respuesta y estimación de varianzas
+## Trabajo final Muestreo II
+### Ignacio Acosta, Valentina Caldiroli , Mauro Loprete
+### 8 de Diciembre
+
+---
+
+
+
+
+class: header_background
+# Diagrama
+
+### - Análisis de la tasa de Respuesta
+  #### - Enfoque determinístico
+  #### - Enfoque estocástico
+
+### - Calibración
+
+### - Estimación de varianzas
+
+---
+
+class: title-slide,middle
+
+# No respuesta
+
+---
+
+class: header_background
+
+# Tasa de respuesta en la muestra 
+
+.panelset[
+.panel[.panel-name[Código]
+
+
+```r
+muestra %&gt;%
+    summarize.(
+        tr = mean(R)
+    ) %&gt;%
+    mutate.(
+        tnr = 1 - tr
+    ) %&gt;%
+    assign(
+        "tasaRespuesta",
+        .,
+        envir = .GlobalEnv
+    )
+```
+]
+.panel[.panel-name[Resultado]
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:right;"&gt; Tasa de Respuesta &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Tasa de No Respuesta &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:right;"&gt; 0.54 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.46 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+### Baja tasa de no respuesta !
+]
+
+]
+
+---
+
+class: inverse,middle
+
+# Enfoque determinístico
+
+---
+
+class: header_background
+
+# Estimaciones 
+
+.panelset[
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+
+```r
+muestra %&gt;%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w0,
+        strata = estrato
+    ) %T&gt;%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %&gt;%
+    filter(
+        R &gt; 0
+    ) %&gt;%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        )
+    ) %&gt;%
+    assign(
+      "est_originales",
+      .,
+      envir = .GlobalEnv
+    )
+```
+]
+]
+.panel[.panel-name[Resultado]
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Variable &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Estimación puntual &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Error estandar &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; deff &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; pobre &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.085 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.047 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 2.976 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; td &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.082 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.003 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.041 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.079 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; yprom &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 22037.709 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 257.069 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.937 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+]
+
+---
+class: inverse,middle
+
+# Enfoque estocástico
+
+## Patrón del tipo MAR
+
+---
+
+class: header_background
+
+# Grupos de no respuesta
+.panelset[
+.panel[.panel-name[Creación de grupos]
+
+&lt;h2&gt; Definimos grupos de no respuesta en base a los estratos socioeconomicos
+y por departamentos. A exepción de Montevideo, Canelones y San José
+que presentan comportamientos disímiles entre
+algunos estratos, a cada departamento se le imputara su tasa de respuesta &lt;h2&gt;
+
+
+]
+
+.panel[.panel-name[Diferencia de comportamiento]
+
+.center[
+
+&lt;img src="presentacion_files/figure-html/unnamed-chunk-5-1.png" width="40%" /&gt;
+]
+]
+
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+
+```r
+muestra %&gt;%
+    summarize.(
+        tr_w_estrato_dpto = weighted.mean(
+            R
+        ),
+        .by = c(
+            "estrato",
+            "dpto"
+        )
+    ) %&gt;%
+    assign(
+        "tr_estrato_dpto",
+        .,
+        envir = .GlobalEnv
+    )
+
+muestra %&lt;&gt;%
+    left_join.(
+        tr_estrato_dpto,
+        by = c(
+            "estrato" = "estrato",
+            "dpto" = "dpto"
+        )
+    ) %&gt;%
+    mutate.(
+        w_nr_post = w0 / tr_w_estrato_dpto
+    )
+
+muestra %&gt;%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_post,
+        strata = estrato
+    ) %T&gt;%
+    assign(
+        "diseño",
+        .,
+        envir = .GlobalEnv
+    ) %&gt;%
+    filter(
+        R &gt; 0
+    ) %&gt;%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_post,
+          type = "kish"
+        )
+    ) %&gt;%
+    assign(
+      "est_ponderados_nr",
+      .,
+      envir = .GlobalEnv
+    )
+```
+
+
+
+]
+]
+
+.panel[.panel-name[Estimación]
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Variable &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Estimación puntual &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Error estandar &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; deff &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Efecto diseño de Kish &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; pobre &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.088 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.047 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.068 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; td &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.082 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.003 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.042 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.097 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.03 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; yprom &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21914.940 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 257.318 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.952 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.03 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+
+
+]
+
+]
+
+---
+
+class: header_background
+
+# Usando Boosting
+
+.panelset[
+.panel[.panel-name[Algoritmo]
+
+
+&lt;h4&gt; Este tipo de modelos es similar al Random Forest, generando diferentes arboles de decisión y promediando sus resultados.
+
+La diferencia con este último es que la secuencia de árboles es dependiente de la realización anterior, ya que en cada
+paso se minimiza una función de pérdida (predicciones contra valores observados). 
+
+Este tipo de modelos supera a los del tipo de RF, ya que cada nuevo árbol de clasificación se genera tomando en cuenta 
+los errores del paso anterior y no simplemente por azar.
+&lt;h4&gt;
+]
+
+.panel[.panel-name[Covariables]
+
+.center[
+
+&lt;img src="presentacion_files/figure-html/unnamed-chunk-8-1.png" width="40%" /&gt;
+
+]
+
+]
+
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+
+```r
+boost_tree(
+    trees = 300
+) %&gt;%
+set_engine(
+    "xgboost"
+) %&gt;%
+set_mode(
+    "classification"
+) %&gt;%
+fit(
+    as.factor(R) ~ estrato + sexo + edad + dpto, data = muestra
+) %&gt;%
+assign(
+    "modelo_boost",
+    .,
+    envir = .GlobalEnv
+)
+```
+
+```
+## [13:25:35] WARNING: amalgamation/../src/learner.cc:1115: Starting in XGBoost 1.3.0, the default evaluation metric used with the objective 'binary:logistic' was changed from 'error' to 'logloss'. Explicitly set eval_metric if you'd like to restore the old behavior.
+```
+
+
+
+]
+
+]
+
+.panel[.panel-name[Métricas]
+
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="1"&gt;&lt;div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; "&gt;Predicción&lt;/div&gt;&lt;/th&gt;
+&lt;th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="2"&gt;&lt;div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; "&gt;Observados&lt;/div&gt;&lt;/th&gt;
+&lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt;   &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; 0 &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; 1 &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 0 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 7597 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3947 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; 1 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 4763 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 10562 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+.center[
+
+&lt;h4&gt; A lo que refiere a la sensibilidad del modelo podemos ver que es de `\(70 \%\)`, mientras que la especificidad es de
+un casi `\(62 \%\)` y un error total de `\(31 \%\)` . &lt;h4&gt;
+
+]
+
+]
+
+]
+
+---
+
+class: header_background
+
+
+# Propensiones simples
+
+.panelset[
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+
+```r
+tibble(
+    predict(
+        modelo_boost,
+        muestra, 
+        type = "prob"
+    ),
+    predict(
+        modelo_boost,
+        muestra
+    )
+) %&gt;%
+rename.(
+    pred_boost = .pred_1
+) %&gt;%
+assign(
+    "pred_boost",
+    .,
+    envir = .GlobalEnv
+)
+
+
+muestra %&lt;&gt;%
+    bind_cols.(
+        pred_boost
+    ) %&gt;%
+    mutate.(
+        w_nr_boost = (w0*R)/(pred_boost)
+    )
+
+
+muestra %&gt;%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_boost,
+        strata = estrato
+    ) %T&gt;%
+    assign(
+        "diseño_boost",
+        .,
+        envir = .GlobalEnv
+    ) %&gt;%
+    filter(
+        R &gt; 0
+    ) %&gt;%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost,
+          type = "kish"
+        )
+    ) %&gt;%
+    assign(
+      "est_ponderados_nr_boost",
+      .,
+      envir = .GlobalEnv
+    )
+```
+]
+]
+.panel[.panel-name[Resultado]
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Variable &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Estimación puntual &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Error estandar &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; deff &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Efecto diseño de Kish &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; pobre &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.089 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.047 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.171 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.153 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; td &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.083 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.044 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.257 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.153 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; yprom &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21878.361 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 268.478 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.039 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.153 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+]
+
+.panel[.panel-name[Originales vs Ajustados]
+
+.center[
+
+&lt;img src="presentacion_files/figure-html/unnamed-chunk-13-1.png" width="40%" /&gt;
+]
+
+
+]
+
+.panel[.panel-name[Resumen]
+
+.center[
+
+Una vez realizadas las estimaciones, se puede ver que las mismas difieren poco.
+Se nota a su vez un leve aumento en los errores estándar y coeficientes de variación, sin embargo
+se puede notar un aumento en el efecto diseño, así como también en el efecto diseño de Kish.
+
+En base al gráfico puede verse como aumentaron los ponderadores, algunos de ellos de forma considerable. Si bien esto puede sonar alarmante los 
+encuestados respondentes tienen que brindar información sobre los que no respondieron. Al tener tasas de respuesta bajas, la variación de los ponderadores,
+tiene que reflejar esa situación. 
+
+
+Algo a considerar, es que la estimación de la población obtenida con este nuevo sistema de ponderadores es de `\(3.415.329\)` siendo la original de `\(3.518.412\)`.
+
+
+
+La estimaciones son similares entre sí, algo que no ocurría utilizando la estrategia de la parte 2, esta crecia a casí el doble `\(6.582.193\)`.
+
+]
+
+]
+]
+
+
+---
+
+class: header_background
+
+
+# Propensiones estratificadas
+
+.panelset[
+
+.panel[.panel-name[Histograma propensiones]
+
+.center[
+
+&lt;img src="presentacion_files/figure-html/unnamed-chunk-14-1.png" width="40%" /&gt;
+]
+
+
+]
+
+
+.panel[.panel-name[Código]
+
+.scroll-box-20[
+
+
+```r
+muestra %&lt;&gt;%
+    mutate.(
+        boost_class = cut(
+            pred_boost,
+            breaks = quantile(
+                pred_boost,
+                probs = seq(0,1,1/5)
+            ),
+            include.lowest = TRUE
+        )
+    ) %&gt;%
+    mutate.(
+        ajuste_boost_clases = 1/median(pred_boost),
+        .by = boost_class
+    ) %&gt;%
+    mutate.(
+        w_nr_boost_clases = R * w0 * ajuste_boost_clases
+    )
+
+
+muestra %&gt;%
+    as_survey_design(
+        ids = id_hogar,
+        weight = w_nr_boost_clases,
+        strata = estrato
+    ) %T&gt;%
+    assign(
+        "diseño_nr_boost_clases",
+        .,
+        envir = .GlobalEnv
+    ) %&gt;%
+    filter(
+        R &gt; 0
+    ) %&gt;%
+    summarize(
+        td = survey_ratio(
+            desocupado,
+            activo,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        pobre = survey_mean(
+            pobreza,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        yprom = survey_mean(
+            ingreso,
+            deff = TRUE,
+            vartype = c("se","cv")
+        ),
+        deffK = deff(
+          w_nr_boost_clases,
+          type = "kish"
+        )
+    ) %&gt;%
+    assign(
+      "est_ponderados_nr_clases",
+      .,
+      envir = .GlobalEnv
+    )
+```
+]
+]
+.panel[.panel-name[Resultado]
+&lt;table class="table" style="margin-left: auto; margin-right: auto;"&gt;
+ &lt;thead&gt;
+  &lt;tr&gt;
+   &lt;th style="text-align:left;"&gt; Variable &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Estimación puntual &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Error estandar &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; CV &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; deff &lt;/th&gt;
+   &lt;th style="text-align:right;"&gt; Efecto diseño de Kish &lt;/th&gt;
+  &lt;/tr&gt;
+ &lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; pobre &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.089 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.047 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 3.147 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.129 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; td &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.083 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.004 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.043 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.239 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.129 &lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+   &lt;td style="text-align:left;"&gt; yprom &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 21879.717 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 267.748 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 0.012 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.034 &lt;/td&gt;
+   &lt;td style="text-align:right;"&gt; 1.129 &lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h4&gt; En base al cuadro se puede ver que el efecto diseño de Kish sigue controlado, mientras que el error estandar y el efecto diseño aumentarón levemente.&lt;h4&gt;
+
+]
+
+]
+
+---
+
+class: title-slide,middle
+
+# Calibración
+
+---
+
+class: header_background
+
+# Método Raking
+
+.panelset[
+
+.panel[.panel-name[Resumen]
+
+&lt;h4&gt; Construimos los nuevos ponderadores calibrados usando el método de Raking o post-estratificación incompleta, 
+recortamos los mismos y aumentamos el tamaño de iteraciones por defecto. &lt;h4&gt;
+
+.center[
+
+&lt;h3&gt; Con los limites fijados los ponderadores pueden variar hasta un `\(30\%\)` de su valor obtenido
+ con las propensiones estratificadas del boosting,es decir, al argumento bounds le 
+ fijamos `\(-1.3\)` y `\(1.3\)` &lt;h3&gt;
+
+]
+
+&lt;h2&gt; El efecto de Kish fue de 1.166. &lt;h2&gt;
+
+
+]
+
+
+.panel[.panel-name[Preparación variables auxiliares]
+.scroll-box-20[
+
+
+```r
+read_excel(
+    here(
+        "data",
+        "dpto.xlsx"
+    )
+) %&gt;%
+rename.(
+    personas_dpto = personas 
+) %&gt;%
+pull.(
+    "personas_dpto"
+) %&gt;%
+unique() %&gt;%
+assign(
+    "total_dpto",
+    .,
+    envir = .GlobalEnv
+)
+
+edad_sexo &lt;- read_excel(
+    here(
+        "data",
+        "sexo_edad.xlsx"
+    )
+)
+
+edad_sexo  %&gt;%
+    mutate.(
+        total = hombres + mujeres,
+        .keep = "unused"
+    ) %&gt;%
+    mutate.(
+        edad_tramo = cut(
+            edad,
+            breaks = c(0,14,20,25,30,40,50,60,Inf),
+            right=FALSE
+        )
+    ) %&gt;%
+    summarize.(
+        total = sum(total),
+        .by = "edad_tramo"
+    ) %&gt;% 
+    rename.(
+        total_edad = total
+    ) %&gt;%
+    pull.(
+        "total_edad"
+    ) %&gt;%
+    unique() %&gt;%
+    assign(
+        "total_edad",
+        .,
+        envir = .GlobalEnv
+    )
+
+edad_sexo  %&gt;%
+    summarize.(
+        hombres = sum(hombres),
+        mujeres = sum(mujeres)
+    ) %&gt;%
+    pivot_longer.(
+        names_to = "sexo",
+        values_to = "valor"
+    ) %&gt;%
+    rename.(
+        total_sexo = valor
+    ) %&gt;%
+    mutate.(
+        sexo = ifelse.(
+            sexo == "hombres",
+            1,
+            2
+        )
+    ) %&gt;%
+    pull.(
+        "total_sexo"
+    ) %&gt;%
+    unique() %&gt;%
+    assign(
+        "total_sexo",
+         .,
+        envir = .GlobalEnv
+    )
+
+
+
+conteos &lt;- c(
+    sum(muestra$w0),
+    total_dpto[-1],
+    total_edad[-1],
+    total_sexo[-1]
+)
+```
+]
+]
+
+.panel[.panel-name[Método Raking]
+
+.scroll-box-20[
+
+
+```r
+survey::calibrate(
+    design = diseño_nr_boost_clases,
+    formula = ~ as.factor(dpto) + edad_tramo + as.factor(sexo),
+    population = conteos,
+    calfun = "raking",
+    bounds = c(
+      -1.3,
+      1.3
+    ),
+    maxit = 100,
+    bounds.const = FALSE
+) %&gt;%
+assign(
+    "w_nr_calibrados",
+    .,
+    envir = .GlobalEnv
+)
+
+muestra %&lt;&gt;%
+    mutate.(
+        w_nr_boost_clases_calibrados = weights(
+            w_nr_calibrados
+        )
+    )
+```
+]
+
+
+]
+
+.panel[.panel-name[Diagrama de dispersión]
+
+.center[
+
+&lt;img src="presentacion_files/figure-html/unnamed-chunk-19-1.png" width="40%" /&gt;
+
+]
+
+]
+
+]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"slideNumberFormat": "%current%",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+<style>
+.logo {
+  background-image: url(coffe.svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  width: 80px;
+  height: 98px;
+  z-index: 0;
+}
+</style>
+
+<script>
+document
+  .querySelectorAll(
+    '.remark-slide-content' +
+    // add additional classes to exclude here, e.g.
+    // ':not(.inverse)' +
+    ':not(.hide-logo)'
+  )
+  .forEach(el => {
+    el.innerHTML += '<div class="logo"></div>';
+  });
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
