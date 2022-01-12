@@ -148,7 +148,6 @@ tasaRespuesta %>%
         )
     )
 ```
-### Alta tasa de no respuesta !
 ]
 
 ]
@@ -1779,12 +1778,10 @@ class: header_background
 
 # Conclusión 
 
-Tras realizar ambas estimaciones por ambos métodos, se ve claramente que las estimaciones puntuales coinciden en su totalidad.
+<h4> Tras realizar ambas estimaciones por ambos métodos, se ve claramente que las estimaciones puntuales coinciden en su totalidad.
 
 Por otra parte, cuando se analiza la variabilidad de las estimaciones haciendo uso del desvío estándar, puede verse como ambos métodos mantienen (en muy pocos conglomerados) diferencias mínimas, de 0.001 como máximo.
 
-
 Lo que conlleva a deducír que el comportamiento de los métodos es muy similar.
 
-
-Lo mismo sucede con los intervalos de confianza, las diferencias son muy pequeñas (aunque sí se puede notar que las mismas son mayores que en SE y la estimación puntual).
+Lo mismo sucede con los intervalos de confianza, las diferencias son muy pequeñas (aunque sí se puede notar que las mismas son mayores que en SE y la estimación puntual).<h4>
